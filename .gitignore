@@ -1,13 +1,8 @@
 Makefile
 autom4te.cache/
 config.log
-config.status
-config/
 doc/Makefile
-libtool
-src/.deps/
 src/Makefile
-src/Makefile.in
 src/libczmq.pc
 src/platform.hpp
 src/stamp-h1
