@@ -1,12 +1,8 @@
-INSTALL
 Makefile
-Makefile.in
-aclocal.m4
 autom4te.cache/
 config.log
 config.status
 config/
-configure
 doc/Makefile
 doc/Makefile.in
 libtool
@@ -16,7 +12,6 @@ src/Makefile.in
 src/libczmq.pc
 src/platform.hpp
 src/platform.hpp.in
-src/platform.hpp.in~
 src/stamp-h1
 src/*.o
 src/mtrace.txt
@@ -28,7 +23,6 @@ src/.libs/
 src/czmq.la
 src/platform.h
 src/platform.h.in
-src/platform.h.in~
 src/*.lo
 src/malloc.txt
 examples/*.o
@@ -41,6 +35,7 @@ ipr
 *.gz
 *.zip
 *.la
+*~
 win32/czmq.ncb
 win32/czmq.vcproj.WS200902.user.user
 win32/czmq_selftest.exe.embed.manifest
