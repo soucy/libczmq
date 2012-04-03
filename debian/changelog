@@ -1,3 +1,42 @@
+czmq (1.3.4) unstable; urgency=low
+
+  [ Stephen Hemminger ]
+  * Do autogen  once and save result
+  * Cleanup build file dependency issues
+  * add more generated files
+
+  [ Pieter Hintjens ]
+  * Generated documentation
+  * Improvements to socket get/set property API
+
+  [ Dan Colish ]
+  * Correct libzmq configure flag in README
+
+  [ Pieter Hintjens ]
+  * Was wrongly generating zsockopt_set_hwm
+  * Include generated files for zsocket_set_hwm
+  * Added zctx_underlying()
+
+  [ Mikko Koppanen ]
+  * Added ZFRAME_DONTWAIT for non-blocking send
+  * Added zstr_sendfm implementation
+
+  [ Lourens Naudé ]
+  * Coverage / test case for zstr_sendfm
+  * Introduce a zlist_last API: returns list tail and leaves cursor pointing at the tail item
+  * Let zmsg_last prefer the zlist_last API
+  * README.md regenerated to reflect recent contributions
+
+  [ TJ Holowaychuk ]
+  * zlist: added zlist_{head, tail}() retaining cursor
+
+  [ Felipe cruz ]
+  * puts calls removed
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <stephen.hemminger@vyatta.com>  Tue, 03 Apr 2012 09:55:35 -0700
+
 czmq (1.3.3) unstable; urgency=low
 
   * Initial Release based on upstream.
