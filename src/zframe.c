@@ -137,7 +137,7 @@ zframe_recv (void *socket)
             zframe_destroy (&self);
             return NULL;            //  Interrupted or terminated
         }
-        self->more = zsockopt_rcvmore (socket);
+        self->more = zsocket_rcvmore (socket);
     }
     return self;
 }
@@ -157,7 +157,7 @@ zframe_recv_nowait (void *socket)
             zframe_destroy (&self);
             return NULL;            //  Interrupted or terminated
         }
-        self->more = zsockopt_rcvmore (socket);
+        self->more = zsocket_rcvmore (socket);
     }
     return self;
 }
@@ -175,23 +175,21 @@ zframe_send (zframe_t **self_p, void *socket, int flags)
 
     if (*self_p) {
         zframe_t *self = *self_p;
+        int snd_flags = (flags & ZFRAME_MORE)? ZMQ_SNDMORE: 0;
+        snd_flags |= (flags & ZFRAME_DONTWAIT)? ZMQ_DONTWAIT: 0;
         if (flags & ZFRAME_REUSE) {
             zmq_msg_t copy;
             zmq_msg_init (&copy);
             if (zmq_msg_copy (&copy, &self->zmsg)) {
-                puts ("copy");
                 return -1;
             }
-            if (zmq_sendmsg (socket, &copy, (flags & ZFRAME_MORE)? ZMQ_SNDMORE: 0) == -1) {
-                puts ("sendmsg 1");
+            if (zmq_sendmsg (socket, &copy, snd_flags) == -1) {
                 return -1;
             }
             zmq_msg_close (&copy);
         }
         else {
-            if (zmq_sendmsg (socket, &self->zmsg, (flags & ZFRAME_MORE)? ZMQ_SNDMORE: 0) == -1) {
-                puts ("sendmsg 2");
-                puts (zmq_strerror (errno));
+            if (zmq_sendmsg (socket, &self->zmsg, snd_flags) == -1) {
                 return -1;
             }
             zframe_destroy (self_p);

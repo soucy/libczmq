@@ -121,18 +121,12 @@ zstr_sendm (void *socket, const char *string)
     return rc == -1? -1: 0;
 }
 
-
-//  --------------------------------------------------------------------------
-//  Send formatted C string to socket
-
-int
-zstr_sendf (void *socket, const char *format, ...)
+static int
+s_zstr_sendf_impl (void *socket, Bool more, const char *format, va_list argptr)
 {
     assert (socket);
 
     //  Format string into buffer
-    va_list argptr;
-    va_start (argptr, format);
     int size = 255 + 1;
     char *string = (char *) malloc (size);
     int required = vsnprintf (string, size, format, argptr);
@@ -141,14 +135,48 @@ zstr_sendf (void *socket, const char *format, ...)
         string = (char *) realloc (string, size);
         vsnprintf (string, size, format, argptr);
     }
-    va_end (argptr);
 
     //  Now send formatted string
-    int rc = zstr_send (socket, string);
+    int rc;
+    if (more)
+        rc = zstr_sendm (socket, string);
+    else
+        rc = zstr_send (socket, string);
     free (string);
     return rc;
 }
 
+//  --------------------------------------------------------------------------
+//  Send formatted C string to socket
+int
+zstr_sendf (void *socket, const char *format, ...)
+{
+    assert (socket);
+
+    va_list argptr;
+    va_start (argptr, format);
+
+    int rc = s_zstr_sendf_impl (socket, FALSE, format, argptr);
+    va_end (argptr);
+
+    return rc;
+}
+
+//  --------------------------------------------------------------------------
+//  Send formatted C string to socket with MORE flag
+int
+zstr_sendfm (void *socket, const char *format, ...)
+{
+    assert (socket);
+
+    va_list argptr;
+    va_start (argptr, format);
+
+    int rc = s_zstr_sendf_impl (socket, TRUE, format, argptr);
+    va_end (argptr);
+
+    return rc;
+}
 
 //  --------------------------------------------------------------------------
 //  Selftest
@@ -169,10 +197,12 @@ zstr_test (Bool verbose)
     assert (input);
     zsocket_connect (input, "inproc://zstr.test");
 
-    //  Send ten strings and then END
+    //  Send ten strings, five strings with MORE flag and then END
     int string_nbr;
     for (string_nbr = 0; string_nbr < 10; string_nbr++)
         zstr_sendf (output, "this is string %d", string_nbr);
+    for (string_nbr = 0; string_nbr < 5; string_nbr++)
+        zstr_sendfm (output, "this is string %d", string_nbr);
     zstr_send (output, "END");
 
     //  Read and count until we receive END
@@ -185,7 +215,7 @@ zstr_test (Bool verbose)
         }
         free (string);
     }
-    assert (string_nbr == 10);
+    assert (string_nbr == 15);
 
     zctx_destroy (&ctx);
     //  @end
