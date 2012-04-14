@@ -1,3 +1,9 @@
+czmq (1.3.3-vyatta-5) unstable; urgency=low
+
+  * force rebuild
+
+ -- Stephen Hemminger <stephen.hemminger@vyatta.com>  Fri, 13 Apr 2012 17:56:45 -0700
+
 czmq (1.3.3-vyatta-4) unstable; urgency=low
 
   * force build
