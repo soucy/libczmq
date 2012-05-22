@@ -1,3 +1,12 @@
+czmq (1:1.1.0-vyatta-2) unstable; urgency=low
+
+  [ Mikko Koppanen ]
+  * Looks like this would not make sense if item->fd is set instead of item->socket
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <shemminger@vyatta.com>  Tue, 22 May 2012 10:06:11 -0700
+
 czmq (1:1.1.0-vyatta-1) unstable; urgency=low
 
   [ Mikko Koppanen ]
