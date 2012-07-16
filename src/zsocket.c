@@ -124,6 +124,35 @@ zsocket_connect (void *socket, const char *format, ...)
     return zmq_connect (socket, endpoint);
 }
 
+#if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,3,0))
+//  --------------------------------------------------------------------------
+//  Disconnect a socket from a formatted endpoint
+//  Returns 0 if disconnection is complete -1 if the disconnection failed.
+
+int
+zsocket_disconnect (void *socket, const char *format, ...)
+{
+    char endpoint [256];
+    va_list argptr;
+    va_start (argptr, format);
+    vsnprintf (endpoint, 256, format, argptr);
+    va_end (argptr);
+    return zmq_disconnect (socket, endpoint);
+}
+#endif
+
+//  --------------------------------------------------------------------------
+//  Poll for input events on the socket. Returns TRUE if there is input
+//  ready on the socket, else FALSE.
+
+Bool
+zsocket_poll (void *socket, int msecs)
+{
+    zmq_pollitem_t items [] = { { socket, 0, ZMQ_POLLIN, 0 } };
+    int rc = zmq_poll (items, 1, msecs);
+    return (items [0].revents & ZMQ_POLLIN) != 0;
+}
+
 
 //  --------------------------------------------------------------------------
 //  Returns socket type as printable constant string
@@ -179,6 +208,8 @@ zsocket_test (Bool verbose)
     int port = zsocket_bind (writer, "tcp://%s:*", interf);
     assert (port >= ZSOCKET_DYNFROM && port <= ZSOCKET_DYNTO);
 
+    assert (zsocket_poll (writer, 100) == FALSE);
+    
     zsocket_destroy (ctx, writer);
     zctx_destroy (&ctx);
     //  @end

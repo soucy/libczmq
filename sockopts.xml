@@ -50,7 +50,7 @@
         <option name = "rcvtimeo"          type = "int"    mode = "rw" test = "SUB" />
         <option name = "sndtimeo"          type = "int"    mode = "rw" test = "SUB" />
         <option name = "ipv4only"          type = "int"    mode = "rw" test = "SUB" />
-        <option name = "fail_unroutable"   type = "int"    mode = "w"  test = "ROUTER" />
+        <option name = "router_behavior"   type = "int"    mode = "w"  test = "ROUTER" />
         <option name = "rcvmore"           type = "int"    mode = "r"  test = "SUB" />
         <option name = "fd"                type = "int"    mode = "r"  test = "SUB" />
         <option name = "events"            type = "int"    mode = "r"  test = "SUB" />
@@ -71,6 +71,7 @@ zsocket_set_hwm (void *socket, int hwm)
 }
         </source>
         <selftest>
+    socket = zsocket_new (ctx, ZMQ_SUB);
     zsocket_set_hwm (socket, 1);
         </selftest>
     </version>
