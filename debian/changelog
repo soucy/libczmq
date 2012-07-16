@@ -1,3 +1,38 @@
+czmq (1:1.1.0-vyatta-3) unstable; urgency=low
+
+  [ Stephen Hemminger ]
+  * Make key arguments to zhash const char *
+  * Make filename arguments const char *
+  * zfile: fix prompt in test
+  * zframe: use const where possible
+  * Update README.md to match const changes
+
+  [ Pieter Hintjens ]
+  * Added zsocket_poll, fixed bug in zsockopt selftest
+
+  [ Felipe cruz ]
+  * zsocket_poll function README doc updated
+
+  [ Stephen Hemminger ]
+  * Make zctx_interrupted volatile
+
+  [ Javier Lopez ]
+  * Fixes problems compiling czmq with libzmq3.x on UNIX
+  * Add zsocket_disconnect binding
+  * Change order of includes on czmq_prelude.h
+  * Do not show disconnect on old zmq versions
+
+  [ Pieter Hintjens ]
+  * Fixed issue #48
+  * Updated man pages
+
+  [ James Tucker ]
+  * When arguments contain null bytes, strlen fails
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <stephen.hemminger@vyatta.com>  Mon, 16 Jul 2012 11:48:31 -0700
+
 czmq (1:1.1.0-vyatta-2) unstable; urgency=low
 
   [ Mikko Koppanen ]
