@@ -1,3 +1,9 @@
+czmq (1:1.1.0-vyatta-4) unstable; urgency=low
+
+  * Force build
+
+ -- John Southworth <john.southworth@vyatta.com>  Thu, 23 Aug 2012 11:13:09 -0700
+
 czmq (1:1.1.0-vyatta-3) unstable; urgency=low
 
   [ Stephen Hemminger ]
