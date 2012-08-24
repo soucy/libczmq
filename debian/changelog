@@ -1,3 +1,9 @@
+czmq (1:1.1.0-vyatta-5) unstable; urgency=low
+
+  * Force build now that dependencies have been fixed on build server
+
+ -- John Southworth <john.southworth@vyatta.com>  Fri, 24 Aug 2012 11:02:21 -0700
+
 czmq (1:1.1.0-vyatta-4) unstable; urgency=low
 
   * Force build
