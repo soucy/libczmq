@@ -1,3 +1,26 @@
+czmq (1:1.2.0-vyatta-1) unstable; urgency=low
+
+  [ Mikko Koppanen ]
+  * Fix #52
+
+  [ Pieter Hintjens ]
+  * Code style fixes
+
+  [ Steven McCoy ]
+  * Fix build error with SDK 7.0a and order of WinSock header. Fix C++ incompatibilities with casting void. Convert poll_size to size_t as more appropriate for usage.
+  * Fix 64-bit word dereferencing on 64-bit archs.
+  * Fix tab usage.
+
+  [ Pieter Hintjens ]
+  * Minor syntax cleanups
+  * Fixed issue #58
+  * Fixed issue #60
+  * Updated NEWS for 1.2 release
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <shemminger@vyatta.com>  Wed, 05 Sep 2012 14:42:07 -0700
+
 czmq (1:1.1.0-vyatta-5) unstable; urgency=low
 
   * Force build now that dependencies have been fixed on build server
