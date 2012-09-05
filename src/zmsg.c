@@ -125,24 +125,26 @@ zmsg_recv (void *socket)
 //  frames, sends nothing but destroys the message anyhow. Safe to call
 //  if zmsg is null.
 
-void
+int
 zmsg_send (zmsg_t **self_p, void *socket)
 {
     assert (self_p);
     assert (socket);
     zmsg_t *self = *self_p;
 
+    int rc = 0;
     if (self) {
         zframe_t *frame = (zframe_t *) zlist_pop (self->frames);
         while (frame) {
-            int rc;
             rc = zframe_send (&frame, socket,
                               zlist_size (self->frames)? ZFRAME_MORE: 0);
-            assert (rc == 0 || (errno == ETERM || errno == EINTR));
+            if (rc != 0)
+                break;
             frame = (zframe_t *) zlist_pop (self->frames);
         }
         zmsg_destroy (self_p);
     }
+    return rc;
 }
 
 
@@ -191,7 +193,7 @@ zframe_t *
 zmsg_pop (zmsg_t *self)
 {
     assert (self);
-    zframe_t *frame = zlist_pop (self->frames);
+    zframe_t *frame = (zframe_t *) zlist_pop (self->frames);
     if (frame)
         self->content_size -= zframe_size (frame);
     return frame;
@@ -258,6 +260,7 @@ zmsg_pushstr (zmsg_t *self, const char *format, ...)
 {
     assert (self);
     assert (format);
+
     //  Format string into buffer
     va_list argptr;
     va_start (argptr, format);
@@ -276,9 +279,10 @@ zmsg_pushstr (zmsg_t *self, const char *format, ...)
             return -1;
         }
         size = vsnprintf (string, size, format, argptr);
-    } else {
-      size = required;
-    }
+    } 
+    else 
+        size = required;
+    
     va_end (argptr);
 
     self->content_size += size;
@@ -314,9 +318,10 @@ zmsg_addstr (zmsg_t *self, const char *format, ...)
             return -1;
         }
         size = vsnprintf (string, size, format, argptr);
-    } else {
-      size = required;
     }
+    else
+        size = required;
+    
     va_end (argptr);
 
     self->content_size += size;
@@ -504,7 +509,7 @@ zmsg_encode (zmsg_t *self, byte **buffer)
             buffer_size += frame_size + 5;
         frame = zmsg_next (self);
     }
-    *buffer = malloc (buffer_size);
+    *buffer = (byte *) malloc (buffer_size);
 
     //  Encode message now
     byte *dest = *buffer;
@@ -624,7 +629,9 @@ zmsg_dup (zmsg_t *self)
 
 //  --------------------------------------------------------------------------
 //  Dump message to stderr, for debugging and tracing
-//  Prints first 10 frames, for larger messages
+//  Truncates to first 10 frames, for readability; this may be unfortunate
+//  when debugging larger and more complex messages. Perhaps a way to hide
+//  repeated lines instead?
 
 void
 zmsg_dump (zmsg_t *self)
@@ -773,7 +780,7 @@ zmsg_test (Bool verbose)
     //  Test encoding/decoding
     msg = zmsg_new ();
     assert (msg);
-    byte *blank = zmalloc (100000);
+    byte *blank = (byte *) zmalloc (100000);
     assert (blank);
     rc = zmsg_addmem (msg, blank, 0);
     assert (rc == 0);
