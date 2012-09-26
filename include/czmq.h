@@ -2,7 +2,7 @@
     czmq.h - CZMQ wrapper
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -34,7 +34,7 @@
 //  CZMQ version macros for compile-time API detection
 
 #define CZMQ_VERSION_MAJOR 1
-#define CZMQ_VERSION_MINOR 2
+#define CZMQ_VERSION_MINOR 3
 #define CZMQ_VERSION_PATCH 0
 
 #define CZMQ_MAKE_VERSION(major, minor, patch) \

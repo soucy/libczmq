@@ -2,7 +2,7 @@
     zthread - working with system threads
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -41,14 +41,14 @@ typedef void (zthread_attached_fn) (void *args, zctx_t *ctx, void *pipe);
 //  Create a detached thread. A detached thread operates autonomously
 //  and is used to simulate a separate process. It gets no ctx, and no
 //  pipe.
-int
+CZMQ_EXPORT int
     zthread_new (zthread_detached_fn *thread_fn, void *args);
 
 //  Create an attached thread. An attached thread gets a ctx and a PAIR
 //  pipe back to its parent. It must monitor its pipe, and exit if the
 //  pipe becomes unreadable. Do not destroy the ctx, the thread does this
 //  automatically when it ends.
-void *
+CZMQ_EXPORT void *
     zthread_fork (zctx_t *ctx, zthread_attached_fn *thread_fn, void *args);
 
 //  Self test of this class

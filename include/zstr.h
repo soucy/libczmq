@@ -2,7 +2,7 @@
     zstr - sending and receiving strings
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -33,27 +33,27 @@ extern "C" {
 
 //  @interface
 //  Receive a string off a socket, caller must free it
-char *
+CZMQ_EXPORT char *
     zstr_recv (void *socket);
 
 //  Receive a string off a socket if socket had input waiting
-char *
+CZMQ_EXPORT char *
     zstr_recv_nowait (void *socket);
 
 //  Send a string to a socket in 0MQ string format
-int
+CZMQ_EXPORT int
     zstr_send (void *socket, const char *string);
 
 //  Send a string to a socket in 0MQ string format, with MORE flag
-int
+CZMQ_EXPORT int
     zstr_sendm (void *socket, const char *string);
 
 //  Send a formatted string to a socket
-int
+CZMQ_EXPORT int
     zstr_sendf (void *socket, const char *format, ...);
 
 //  Send formatted C string to socket with MORE flag
-int
+CZMQ_EXPORT int
     zstr_sendfm (void *socket, const char *format, ...);
 
 //  Self test of this class

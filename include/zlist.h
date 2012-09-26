@@ -2,7 +2,7 @@
     zlist - generic type-free list container
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -35,57 +35,64 @@ extern "C" {
 typedef struct _zlist zlist_t;
 
 //  @interface
+//  Comparison function for zlist_sort method
+typedef bool (zlist_compare_fn) (void *item1, void *item2);
+
 //  Create a new list container
-zlist_t *
+CZMQ_EXPORT zlist_t *
     zlist_new (void);
 
 //  Destroy a list container
-void
+CZMQ_EXPORT void
     zlist_destroy (zlist_t **self_p);
 
 //  Return first item in the list, or null
-void *
+CZMQ_EXPORT void *
     zlist_first (zlist_t *self);
 
 //  Return last item in the list, or null
-void *
+CZMQ_EXPORT void *
     zlist_last (zlist_t *self);
 
 //  Return first item in the list, or null, leaves the cursor
-void *
+CZMQ_EXPORT void *
     zlist_head (zlist_t *self);
 
 //  Return last item in the list, or null, leaves the cursor
-void *
+CZMQ_EXPORT void *
     zlist_tail (zlist_t *self);
 
 //  Return next item in the list, or null
-void *
+CZMQ_EXPORT void *
     zlist_next (zlist_t *self);
 
 //  Append an item to the end of the list
-int
+CZMQ_EXPORT int
     zlist_append (zlist_t *self, void *item);
 
 //  Push an item to the start of the list
-int
+CZMQ_EXPORT int
     zlist_push (zlist_t *self, void *item);
 
 //  Pop the item off the start of the list, if any
-void *
+CZMQ_EXPORT void *
     zlist_pop (zlist_t *self);
 
 //  Remove the specified item from the list if present
-void
+CZMQ_EXPORT void
     zlist_remove (zlist_t *self, void *item);
 
 //  Copy the entire list, return the copy
-zlist_t *
+CZMQ_EXPORT zlist_t *
     zlist_copy (zlist_t *self);
 
 //  Return number of items in the list
-size_t
+CZMQ_EXPORT size_t
     zlist_size (zlist_t *self);
+
+//  Sort list
+void
+    zlist_sort (zlist_t *self, zlist_compare_fn *compare);
 
 //  Self test of this class
 void

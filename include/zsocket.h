@@ -2,7 +2,7 @@
     zsocket - working with 0MQ sockets
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -41,11 +41,11 @@ extern "C" {
 //  Use this to get automatic management of the socket at shutdown.
 //  Note: SUB sockets do not automatically subscribe to everything; you
 //  must set filters explicitly.
-void *
+CZMQ_EXPORT void *
     zsocket_new (zctx_t *self, int type);
 
 //  Destroy a socket within our CZMQ context, replaces zmq_close.
-void
+CZMQ_EXPORT void
     zsocket_destroy (zctx_t *self, void *socket);
 
 //  Bind a socket to a formatted endpoint. If the port is specified as
@@ -53,29 +53,27 @@ void
 //  and returns the actual port number used. Otherwise asserts that the
 //  bind succeeded with the specified port number. Always returns the
 //  port number if successful.
-int
+CZMQ_EXPORT int
     zsocket_bind (void *socket, const char *format, ...);
 
 //  Connect a socket to a formatted endpoint
 //  Returns 0 if OK, -1 if the endpoint was invalid.
-int
+CZMQ_EXPORT int
     zsocket_connect (void *socket, const char *format, ...);
 
-#if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,3,0))
 //  Disonnect a socket from a formatted endpoint
-//  Returns 0 if OK, -1 if the endpoint was invalid.
-int
+//  Returns 0 if OK, -1 if the endpoint was invalid or the function
+//  isn't supported.
+CZMQ_EXPORT int
     zsocket_disconnect (void *socket, const char *format, ...);
-#endif
 
 //  Poll for input events on the socket. Returns TRUE if there is input
 //  ready on the socket, else FALSE.
-
-Bool
+CZMQ_EXPORT Bool
     zsocket_poll (void *socket, int msecs);
     
 //  Returns socket type as printable constant string
-char *
+CZMQ_EXPORT char *
     zsocket_type_str (void *socket);
 
 //  Self test of this class

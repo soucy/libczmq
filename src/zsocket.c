@@ -2,7 +2,7 @@
     zsocket - working with 0MQ sockets
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2011 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of czmq, the high-level C binding for 0MQ:
@@ -57,12 +57,13 @@ zsocket_new (zctx_t *ctx, int type)
 
 //  --------------------------------------------------------------------------
 //  Destroy the socket. You must use this for any socket created via the
-//  zsocket_new method.
+//  zsocket_new method. If socket is null, does nothing.
 
 void
 zsocket_destroy (zctx_t *ctx, void *socket)
 {
-    zctx__socket_destroy (ctx, socket);
+    if (socket)
+        zctx__socket_destroy (ctx, socket);
 }
 
 
@@ -124,7 +125,6 @@ zsocket_connect (void *socket, const char *format, ...)
     return zmq_connect (socket, endpoint);
 }
 
-#if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,3,0))
 //  --------------------------------------------------------------------------
 //  Disconnect a socket from a formatted endpoint
 //  Returns 0 if disconnection is complete -1 if the disconnection failed.
@@ -132,14 +132,17 @@ zsocket_connect (void *socket, const char *format, ...)
 int
 zsocket_disconnect (void *socket, const char *format, ...)
 {
+#if (ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,2,0))
     char endpoint [256];
     va_list argptr;
     va_start (argptr, format);
     vsnprintf (endpoint, 256, format, argptr);
     va_end (argptr);
     return zmq_disconnect (socket, endpoint);
-}
+#else
+    return -1;
 #endif
+}
 
 //  --------------------------------------------------------------------------
 //  Poll for input events on the socket. Returns TRUE if there is input
@@ -150,7 +153,7 @@ zsocket_poll (void *socket, int msecs)
 {
     zmq_pollitem_t items [] = { { socket, 0, ZMQ_POLLIN, 0 } };
     int rc = zmq_poll (items, 1, msecs);
-    return (items [0].revents & ZMQ_POLLIN) != 0;
+    return rc != -1 && (items [0].revents & ZMQ_POLLIN) != 0;
 }
 
 
@@ -198,7 +201,8 @@ zsocket_test (Bool verbose)
     assert (streq (zsocket_type_str (reader), "PULL"));
     int rc = zsocket_bind (writer, "tcp://%s:%d", interf, service);
     assert (rc == service);
-    zsocket_connect (reader, "tcp://%s:%d", domain, service);
+    rc = zsocket_connect (reader, "tcp://%s:%d", domain, service);
+    assert (rc == 0);
     zstr_send (writer, "HELLO");
     char *message = zstr_recv (reader);
     assert (message);
@@ -209,7 +213,10 @@ zsocket_test (Bool verbose)
     assert (port >= ZSOCKET_DYNFROM && port <= ZSOCKET_DYNTO);
 
     assert (zsocket_poll (writer, 100) == FALSE);
-    
+
+    rc = zsocket_connect (reader, "txp://%s:%d", domain, service);
+    assert (rc == -1);
+
     zsocket_destroy (ctx, writer);
     zctx_destroy (&ctx);
     //  @end
