@@ -1,3 +1,9 @@
+czmq (1:1.2.0-vyatta-5) unstable; urgency=low
+
+  * fix branch
+
+ -- John Southworth <john.southworth@vyatta.com>  Sat, 13 Oct 2012 15:31:47 -0700
+
 czmq (1:1.2.0-vyatta-4+pacifica2) unstable; urgency=low
 
   * new branch
