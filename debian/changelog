@@ -1,3 +1,10 @@
+czmq (1:1.2.0-vyatta-6) unstable; urgency=low
+
+  * fix branch
+  * 1:1.2.0-vyatta-5
+
+ -- John Southworth <john.southworth@vyatta.com>  Sat, 13 Oct 2012 15:31:55 -0700
+
 czmq (1:1.2.0-vyatta-5) unstable; urgency=low
 
   * fix branch
