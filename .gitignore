@@ -1,7 +1,9 @@
 Makefile
 autom4te.cache/
 config.log
+config.status
 doc/Makefile
+libtool
 src/Makefile
 src/libczmq.pc
 src/platform.hpp
