@@ -2,7 +2,7 @@
     zstr - sending and receiving strings
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -34,10 +34,31 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zctx.h"
-#include "../include/zsocket.h"
-#include "../include/zstr.h"
+#include "../include/czmq.h"
+
+static int
+s_send_string (void *zocket, bool more, const char *format, va_list argptr)
+{
+    assert (zocket);
+
+    //  Format string into buffer
+    int size = 255 + 1;
+    char *string = (char *) malloc (size);
+    int required = vsnprintf (string, size, format, argptr);
+    if (required >= size) {
+        size = required + 1;
+        string = (char *) realloc (string, size);
+        vsnprintf (string, size, format, argptr);
+    }
+    //  Now send formatted string
+    zmq_msg_t message;
+    zmq_msg_init_size (&message, strlen (string));
+    memcpy (zmq_msg_data (&message), string, strlen (string));
+    int rc = zmq_sendmsg (zocket, &message, more? ZMQ_SNDMORE: 0);
+
+    free (string);
+    return rc == -1? -1: 0;
+}
 
 
 //  --------------------------------------------------------------------------
@@ -45,12 +66,12 @@
 //  NULL if the context is being terminated or the process was interrupted.
 
 char *
-zstr_recv (void *socket)
+zstr_recv (void *zocket)
 {
-    assert (socket);
+    assert (zocket);
     zmq_msg_t message;
     zmq_msg_init (&message);
-    if (zmq_recvmsg (socket, &message, 0) < 0)
+    if (zmq_recvmsg (zocket, &message, 0) < 0)
         return NULL;
 
     size_t size = zmq_msg_size (&message);
@@ -69,12 +90,12 @@ zstr_recv (void *socket)
 //  relies on this method.
 
 char *
-zstr_recv_nowait (void *socket)
+zstr_recv_nowait (void *zocket)
 {
-    assert (socket);
+    assert (zocket);
     zmq_msg_t message;
     zmq_msg_init (&message);
-    if (zmq_recvmsg (socket, &message, ZMQ_DONTWAIT) < 0)
+    if (zmq_recvmsg (zocket, &message, ZMQ_DONTWAIT) < 0)
         return NULL;
 
     size_t size = zmq_msg_size (&message);
@@ -91,90 +112,56 @@ zstr_recv_nowait (void *socket)
 //  error.
 
 int
-zstr_send (void *socket, const char *string)
+zstr_send (void *zocket, const char *format, ...)
 {
-    assert (socket);
-    assert (string);
+    assert (zocket);
+    assert (format);
+    va_list argptr;
+    va_start (argptr, format);
+    int rc = s_send_string (zocket, false, format, argptr);
+    va_end (argptr);
+    return rc;
+}
 
-    zmq_msg_t message;
-    zmq_msg_init_size (&message, strlen (string));
-    memcpy (zmq_msg_data (&message), string, strlen (string));
-    int rc = zmq_sendmsg (socket, &message, 0);
-    zmq_msg_close (&message);
-    return rc == -1? -1: 0;
+//  Deprecated, does exactly the same
+int
+zstr_sendf (void *zocket, const char *format, ...)
+{
+    assert (zocket);
+    assert (format);
+    va_list argptr;
+    va_start (argptr, format);
+    int rc = s_send_string (zocket, false, format, argptr);
+    va_end (argptr);
+    return rc;
 }
 
 
 //  --------------------------------------------------------------------------
 //  Send a string to a socket in 0MQ string format, with MORE flag
+
 int
-zstr_sendm (void *socket, const char *string)
+zstr_sendm (void *zocket, const char *format, ...)
 {
-    assert (socket);
-    assert (string);
-
-    zmq_msg_t message;
-    zmq_msg_init_size (&message, strlen (string));
-    memcpy (zmq_msg_data (&message), string, strlen (string));
-    int rc = zmq_sendmsg (socket, &message, ZMQ_SNDMORE);
-    zmq_msg_close (&message);
-    return rc == -1? -1: 0;
-}
-
-static int
-s_zstr_sendf_impl (void *socket, Bool more, const char *format, va_list argptr)
-{
-    assert (socket);
-
-    //  Format string into buffer
-    int size = 255 + 1;
-    char *string = (char *) malloc (size);
-    int required = vsnprintf (string, size, format, argptr);
-    if (required >= size) {
-        size = required + 1;
-        string = (char *) realloc (string, size);
-        vsnprintf (string, size, format, argptr);
-    }
-
-    //  Now send formatted string
-    int rc;
-    if (more)
-        rc = zstr_sendm (socket, string);
-    else
-        rc = zstr_send (socket, string);
-    free (string);
+    assert (zocket);
+    assert (format);
+    va_list argptr;
+    va_start (argptr, format);
+    int rc = s_send_string (zocket, true, format, argptr);
+    va_end (argptr);
     return rc;
 }
 
-//  --------------------------------------------------------------------------
-//  Send formatted C string to socket
+//  Deprecated, does exactly the same
 int
-zstr_sendf (void *socket, const char *format, ...)
+zstr_sendfm (void *zocket, const char *format, ...)
 {
-    assert (socket);
-
+    assert (zocket);
+    assert (format);
     va_list argptr;
     va_start (argptr, format);
-
-    int rc = s_zstr_sendf_impl (socket, FALSE, format, argptr);
+    int rc = s_send_string (zocket, true, format, argptr);
     va_end (argptr);
-
-    return rc;
-}
-
-//  --------------------------------------------------------------------------
-//  Send formatted C string to socket with MORE flag
-int
-zstr_sendfm (void *socket, const char *format, ...)
-{
-    assert (socket);
-
-    va_list argptr;
-    va_start (argptr, format);
-
-    int rc = s_zstr_sendf_impl (socket, TRUE, format, argptr);
-    va_end (argptr);
-
     return rc;
 }
 
@@ -182,7 +169,7 @@ zstr_sendfm (void *socket, const char *format, ...)
 //  Selftest
 
 int
-zstr_test (Bool verbose)
+zstr_test (bool verbose)
 {
     printf (" * zstr: ");
 
@@ -200,9 +187,9 @@ zstr_test (Bool verbose)
     //  Send ten strings, five strings with MORE flag and then END
     int string_nbr;
     for (string_nbr = 0; string_nbr < 10; string_nbr++)
-        zstr_sendf (output, "this is string %d", string_nbr);
+        zstr_send (output, "this is string %d", string_nbr);
     for (string_nbr = 0; string_nbr < 5; string_nbr++)
-        zstr_sendfm (output, "this is string %d", string_nbr);
+        zstr_sendm (output, "this is string %d", string_nbr);
     zstr_send (output, "END");
 
     //  Read and count until we receive END

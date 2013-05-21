@@ -2,7 +2,7 @@
     zframe - working with single message frames
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -49,6 +49,8 @@ struct _zframe_t {
     zmq_msg_t zmsg;             //  zmq_msg_t blob for frame
     int more;                   //  More flag, from last read
     int zero_copy;              //  zero-copy flag
+    zframe_free_fn *free_fn;    //  destructor callback
+    void *free_arg;             //  destructor callback arg
 };
 
 
@@ -116,6 +118,8 @@ zframe_destroy (zframe_t **self_p)
     assert (self_p);
     if (*self_p) {
         zframe_t *self = *self_p;
+        if (self->free_fn)
+          (self->free_fn) (self, self->free_arg);
         zmq_msg_close (&self->zmsg);
         free (self);
         *self_p = NULL;
@@ -129,16 +133,16 @@ zframe_destroy (zframe_t **self_p)
 //  zframe_recv_nowait().
 
 zframe_t *
-zframe_recv (void *socket)
+zframe_recv (void *zocket)
 {
-    assert (socket);
+    assert (zocket);
     zframe_t *self = zframe_new (NULL, 0);
     if (self) {
-        if (zmq_recvmsg (socket, &self->zmsg, 0) < 0) {
+        if (zmq_recvmsg (zocket, &self->zmsg, 0) < 0) {
             zframe_destroy (&self);
             return NULL;            //  Interrupted or terminated
         }
-        self->more = zsocket_rcvmore (socket);
+        self->more = zsocket_rcvmore (zocket);
     }
     return self;
 }
@@ -149,16 +153,16 @@ zframe_recv (void *socket)
 //  NULL if there was no input waiting, or if the read was interrupted.
 
 zframe_t *
-zframe_recv_nowait (void *socket)
+zframe_recv_nowait (void *zocket)
 {
-    assert (socket);
+    assert (zocket);
     zframe_t *self = zframe_new (NULL, 0);
     if (self) {
-        if (zmq_recvmsg (socket, &self->zmsg, ZMQ_DONTWAIT) < 0) {
+        if (zmq_recvmsg (zocket, &self->zmsg, ZMQ_DONTWAIT) < 0) {
             zframe_destroy (&self);
             return NULL;            //  Interrupted or terminated
         }
-        self->more = zsocket_rcvmore (socket);
+        self->more = zsocket_rcvmore (zocket);
     }
     return self;
 }
@@ -169,9 +173,9 @@ zframe_recv_nowait (void *socket)
 //  set or the attempt to send the message errors out.
 
 int
-zframe_send (zframe_t **self_p, void *socket, int flags)
+zframe_send (zframe_t **self_p, void *zocket, int flags)
 {
-    assert (socket);
+    assert (zocket);
     assert (self_p);
 
     if (*self_p) {
@@ -183,12 +187,11 @@ zframe_send (zframe_t **self_p, void *socket, int flags)
             zmq_msg_init (&copy);
             if (zmq_msg_copy (&copy, &self->zmsg))
                 return -1;
-            if (zmq_sendmsg (socket, &copy, snd_flags) == -1)
+            if (zmq_sendmsg (zocket, &copy, snd_flags) == -1)
                 return -1;
-            zmq_msg_close (&copy);
         }
         else {
-            if (zmq_sendmsg (socket, &self->zmsg, snd_flags) == -1)
+            if (zmq_sendmsg (zocket, &self->zmsg, snd_flags) == -1)
                 return -1;
             zframe_destroy (self_p);
         }
@@ -225,8 +228,10 @@ zframe_data (zframe_t *self)
 zframe_t *
 zframe_dup (zframe_t *self)
 {
-    assert (self);
-    return zframe_new (zframe_data (self), zframe_size (self));
+    if (self)
+        return zframe_new (zframe_data (self), zframe_size (self));
+    else
+        return NULL;
 }
 
 
@@ -270,17 +275,17 @@ zframe_strdup (zframe_t *self)
 
 
 //  --------------------------------------------------------------------------
-//  Return TRUE if frame body is equal to string, excluding terminator
+//  Return true if frame body is equal to string, excluding terminator
 
-Bool
+bool
 zframe_streq (zframe_t *self, const char *string)
 {
     assert (self);
     if (zframe_size (self) == strlen (string)
     &&  memcmp (zframe_data (self), string, strlen (string)) == 0)
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 
@@ -306,20 +311,20 @@ zframe_zero_copy (zframe_t *self)
 
 
 //  --------------------------------------------------------------------------
-//  Return TRUE if two frames have identical size and data
+//  Return true if two frames have identical size and data
 
-Bool
+bool
 zframe_eq (zframe_t *self, zframe_t *other)
 {
     if (!self || !other)
-        return FALSE;
+        return false;
     else
     if (zframe_size (self) == zframe_size (other)
     && memcmp (zframe_data (self), zframe_data (other),
                zframe_size (self)) == 0)
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 
@@ -371,6 +376,16 @@ zframe_reset (zframe_t *self, const void *data, size_t size)
     memcpy (zmq_msg_data (&self->zmsg), data, size);
 }
 
+void
+zframe_freefn (zframe_t *self, zframe_free_fn *free_fn, void *arg)
+{
+    assert (self);
+    assert (free_fn);
+
+    self->free_fn = free_fn;
+    self->free_arg = arg;
+}
+
 //  --------------------------------------------------------------------------
 //  Selftest
 
@@ -387,8 +402,14 @@ s_test_free_cb (void *data, void *arg)
     free (data);
 }
 
+static void
+s_test_free_frame_cb(void *frame, void *arg)
+{
+    assert (frame);
+}
+
 int
-zframe_test (Bool verbose)
+zframe_test (bool verbose)
 {
     printf (" * zframe: ");
     int rc;
@@ -469,6 +490,10 @@ zframe_test (Bool verbose)
 
     zframe_destroy (&frame);
     zframe_destroy (&frame_copy);
+
+    frame = zframe_new ("callback", 8);
+    zframe_freefn (frame, s_test_free_frame_cb, NULL);
+    zframe_destroy (&frame);
 
     zctx_destroy (&ctx);
     //  @end

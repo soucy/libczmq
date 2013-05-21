@@ -2,7 +2,7 @@
     zloop - event-driven reactor
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -30,6 +30,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 //  Opaque class structure
 typedef struct _zloop_t zloop_t;
@@ -72,7 +73,7 @@ CZMQ_EXPORT int
 
 //  Set verbose tracing of reactor on/off
 CZMQ_EXPORT void
-    zloop_set_verbose (zloop_t *self, Bool verbose);
+    zloop_set_verbose (zloop_t *self, bool verbose);
 
 //  Start the reactor. Takes control of the thread and returns when the 0MQ
 //  context is terminated or the process is interrupted, or any event handler
@@ -82,9 +83,14 @@ CZMQ_EXPORT int
     zloop_start (zloop_t *self);
 
 //  Self test of this class
-int
-    zloop_test (Bool verbose);
+CZMQ_EXPORT void
+    zloop_test (bool verbose);
 //  @end
+
+
+// to suppress disabling the event handler on POLLERR
+// set this in pollitem.events
+#define ZMQ_IGNERR 8
 
 #ifdef __cplusplus
 }

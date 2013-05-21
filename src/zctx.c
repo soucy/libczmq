@@ -2,7 +2,7 @@
     zctx - working with 0MQ contexts
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -29,7 +29,7 @@
     The zctx class wraps 0MQ contexts. It manages open sockets in the context
     and automatically closes these before terminating the context. It provides
     a simple way to set the linger timeout on sockets, and configure contexts
-    for number of I/O threads. Sets-up signal (interrrupt) handling for the
+    for number of I/O threads. Sets-up signal (interrupt) handling for the
     process.
 
     The zctx class has these main features:
@@ -54,38 +54,31 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zlist.h"
-#include "../include/zstr.h"
-#include "../include/zframe.h"
-#include "../include/zsockopt.h"
-#include "../include/zctx.h"
-#include "../include/zsocket.h"
+#include "../include/czmq.h"
 
 //  Structure of our class
 
 struct _zctx_t {
     void *context;              //  Our 0MQ context
     zlist_t *sockets;           //  Sockets held by this thread
-    Bool main;                  //  TRUE if we're the main thread
+    bool main;                  //  True if we're the main thread
     int iothreads;              //  Number of IO threads, default 1
     int linger;                 //  Linger timeout, default 0
-    int hwm;                    //  HWM, default 1
 };
 
 
 //  ---------------------------------------------------------------------
 //  Signal handling
-//
-
 //  This is a global variable accessible to CZMQ application code
+
 volatile int zctx_interrupted = 0;
-#if defined (__UNIX__)
-static void s_signal_handler (int signal_value)
+
+static void
+s_signal_handler (int signal_value)
 {
     zctx_interrupted = 1;
 }
-#endif
+
 
 //  --------------------------------------------------------------------------
 //  Constructor
@@ -106,18 +99,8 @@ zctx_new (void)
         return NULL;
     }
     self->iothreads = 1;
-    self->main = TRUE;
-    self->hwm = 1;
-
-#if defined (__UNIX__)
-    //  Install signal handler for SIGINT and SIGTERM
-    struct sigaction action;
-    action.sa_handler = s_signal_handler;
-    action.sa_flags = 0;
-    sigemptyset (&action.sa_mask);
-    sigaction (SIGINT, &action, NULL);
-    sigaction (SIGTERM, &action, NULL);
-#endif
+    self->main = true;
+    zsys_handler_set (s_signal_handler);
     return self;
 }
 
@@ -195,23 +178,22 @@ zctx_set_linger (zctx_t *self, int linger)
 
 
 //  --------------------------------------------------------------------------
-//  Configure HWM value. This is used in zthread_fork
+//  Deprecated method, does nothing - to be removed after 2013/05/14
 
 void
 zctx_set_hwm (zctx_t *self, int hwm)
 {
     assert (self);
-    self->hwm = hwm;
 }
 
 //  --------------------------------------------------------------------------
-//  Get HWM value. This is used in zthread_fork
+//  Deprecated method, does nothing - to be removed after 2013/05/14
 
 int
 zctx_hwm (zctx_t *self)
 {
     assert (self);
-    return self->hwm;
+    return 0;
 }
 
 //  --------------------------------------------------------------------------
@@ -239,15 +221,15 @@ zctx__socket_new (zctx_t *self, int type)
         return NULL;
 
     //  Create and register socket
-    void *socket = zmq_socket (self->context, type);
-    if (!socket)
+    void *zocket = zmq_socket (self->context, type);
+    if (!zocket)
         return NULL;
 
-    if (zlist_push (self->sockets, socket)) {
-        zmq_close (socket);
+    if (zlist_push (self->sockets, zocket)) {
+        zmq_close (zocket);
         return NULL;
     }
-    return socket;
+    return zocket;
 }
 
 
@@ -255,13 +237,13 @@ zctx__socket_new (zctx_t *self, int type)
 //  Destroy socket within this context, for CZMQ use only
 
 void
-zctx__socket_destroy (zctx_t *self, void *socket)
+zctx__socket_destroy (zctx_t *self, void *zocket)
 {
     assert (self);
-    assert (socket);
-    zsocket_set_linger (socket, self->linger);
-    zmq_close (socket);
-    zlist_remove (self->sockets, socket);
+    assert (zocket);
+    zsocket_set_linger (zocket, self->linger);
+    zmq_close (zocket);
+    zlist_remove (self->sockets, zocket);
 }
 
 
@@ -269,7 +251,7 @@ zctx__socket_destroy (zctx_t *self, void *socket)
 //  Selftest
 
 int
-zctx_test (Bool verbose)
+zctx_test (bool verbose)
 {
     printf (" * zctx: ");
 
@@ -298,8 +280,6 @@ zctx_test (Bool verbose)
     zsocket_connect (s5, "tcp://127.0.0.1:5555");
     zsocket_connect (s6, "tcp://127.0.0.1:5555");
     assert (zctx_underlying (ctx));
-
-    //  Everything should be cleanly closed now
     zctx_destroy (&ctx);
     //  @end
 

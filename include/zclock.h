@@ -2,7 +2,7 @@
     zclock - millisecond clocks and delays
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -46,8 +46,8 @@ CZMQ_EXPORT void
     zclock_log (const char *format, ...);
 
 //  Self test of this class
-int
-    zclock_test (Bool verbose);
+CZMQ_EXPORT int
+    zclock_test (bool verbose);
 //  @end
 
 #ifdef __cplusplus

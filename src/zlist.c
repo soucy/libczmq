@@ -2,7 +2,7 @@
     zlist - generic type-free list container
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -33,27 +33,25 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zlist.h"
+#include "../include/czmq.h"
 
 //  List node, used internally only
 
 typedef struct _node_t {
-    struct _node_t
-        *next;
-    void
-        *item;
+    struct _node_t *next;
+    void *item;
 } node_t;
 
-//  Actual list object
 
-struct _zlist {
-    node_t
-        *head, *tail;
-    node_t
-        *cursor;
-    size_t
-        size;
+//  ---------------------------------------------------------------------
+//  Structure of our class
+
+struct _zlist_t {
+    node_t *head;               //  First item in list, if any
+    node_t *tail;               //  Last item in list, if any
+    node_t *cursor;             //  Current cursors for iteration
+    size_t size;                //  Number of items in list
+    bool autofree;              //  If true, free items in destructor
 };
 
 
@@ -77,10 +75,13 @@ zlist_destroy (zlist_t **self_p)
     assert (self_p);
     if (*self_p) {
         zlist_t *self = *self_p;
-        node_t *node, *next;
-        for (node = (*self_p)->head; node != NULL; node = next) {
-            next = node->next;
+        node_t *node = (*self_p)->head;
+        while (node) {
+            node_t *next = node->next;
+            if (self->autofree)
+                free (node->item);
             free (node);
+            node = next;
         }
         free (self);
         *self_p = NULL;
@@ -127,9 +128,7 @@ void *
 zlist_head (zlist_t *self)
 {
     assert (self);
-    return self->head
-      ? self->head->item
-      : NULL;
+    return self->head? self->head->item: NULL;
 }
 
 
@@ -141,14 +140,12 @@ void *
 zlist_tail (zlist_t *self)
 {
     assert (self);
-    return self->tail
-      ? self->tail->item
-      : NULL;
+    return self->tail? self->tail->item: NULL;
 }
 
 //  --------------------------------------------------------------------------
 //  Return the next item. If the list is empty, returns NULL. To move to
-//  the start of the list call zlist_first(). Advances the cursor.
+//  the start of the list call zlist_first (). Advances the cursor.
 
 void *
 zlist_next (zlist_t *self)
@@ -176,6 +173,10 @@ zlist_append (zlist_t *self, void *item)
     if (!node)
         return -1;
 
+    //  If necessary, take duplicate of (string) item
+    if (self->autofree)
+        item = strdup ((char *) item);
+    
     node->item = item;
     if (self->tail)
         self->tail->next = node;
@@ -200,6 +201,10 @@ zlist_push (zlist_t *self, void *item)
     node = (node_t *) zmalloc (sizeof (node_t));
     if (!node)
         return -1;
+
+    //  If necessary, take duplicate of (string) item
+    if (self->autofree)
+        item = strdup ((char *) item);
 
     node->item = item;
     node->next = self->head;
@@ -257,9 +262,11 @@ zlist_remove (zlist_t *self, void *item)
         if (node->next == NULL)
             self->tail = prev;
 
+        if (self->cursor == node)
+            self->cursor = prev;
+
         free (node);
         self->size--;
-        self->cursor = NULL;
     }
 }
 
@@ -268,7 +275,7 @@ zlist_remove (zlist_t *self, void *item)
 //  Make copy of itself
 
 zlist_t *
-zlist_copy (zlist_t *self)
+zlist_dup (zlist_t *self)
 {
     if (!self)
         return NULL;
@@ -284,6 +291,14 @@ zlist_copy (zlist_t *self)
         }
     }
     return copy;
+}
+
+//  Deprecated interface
+
+zlist_t *
+zlist_copy (zlist_t *self)
+{
+    return zlist_dup (self);
 }
 
 
@@ -332,10 +347,6 @@ zlist_sort (zlist_t *self, zlist_compare_fn *compare)
     }
 }
 
-
-//  --------------------------------------------------------------------------
-//  Runs selftest of class
-
 static bool
 s_compare (void *item1, void *item2)
 {
@@ -344,6 +355,21 @@ s_compare (void *item1, void *item2)
     else
         return false;
 }
+
+
+//  --------------------------------------------------------------------------
+//  Set list for automatic item destruction; item values MUST be strings.
+
+void
+zlist_autofree (zlist_t *self)
+{
+    assert (self);
+    self->autofree = true;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Runs selftest of class
 
 void
 zlist_test (int verbose)

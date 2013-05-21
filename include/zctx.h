@@ -2,7 +2,7 @@
     zctx - working with 0MQ contexts
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -73,8 +73,8 @@ CZMQ_EXPORT void *
     zctx_underlying (zctx_t *self);
 
 //  Self test of this class
-int
-    zctx_test (Bool verbose);
+CZMQ_EXPORT int
+    zctx_test (bool verbose);
 
 //  Global signal indicator, TRUE when user presses Ctrl-C or the process
 //  gets a SIGTERM signal.

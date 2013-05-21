@@ -2,7 +2,7 @@
     zsocket - working with 0MQ sockets
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -69,7 +69,7 @@ CZMQ_EXPORT int
 
 //  Poll for input events on the socket. Returns TRUE if there is input
 //  ready on the socket, else FALSE.
-CZMQ_EXPORT Bool
+CZMQ_EXPORT bool
     zsocket_poll (void *socket, int msecs);
     
 //  Returns socket type as printable constant string
@@ -77,8 +77,8 @@ CZMQ_EXPORT char *
     zsocket_type_str (void *socket);
 
 //  Self test of this class
-int
-    zsocket_test (Bool verbose);
+CZMQ_EXPORT int
+    zsocket_test (bool verbose);
 //  @end
 
 #ifdef __cplusplus

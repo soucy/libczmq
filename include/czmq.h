@@ -2,7 +2,7 @@
     czmq.h - CZMQ wrapper
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -29,12 +29,12 @@
 
 //  Set up environment for the application
 //
-#include <czmq_prelude.h>
+#include "czmq_prelude.h"
 
 //  CZMQ version macros for compile-time API detection
 
 #define CZMQ_VERSION_MAJOR 1
-#define CZMQ_VERSION_MINOR 3
+#define CZMQ_VERSION_MINOR 4
 #define CZMQ_VERSION_PATCH 0
 
 #define CZMQ_MAKE_VERSION(major, minor, patch) \
@@ -42,19 +42,22 @@
 #define CZMQ_VERSION \
     CZMQ_MAKE_VERSION(CZMQ_VERSION_MAJOR, CZMQ_VERSION_MINOR, CZMQ_VERSION_PATCH)
 
-//  Classes listed in alphabetical order
+//  Classes in the API
 
-#include <zclock.h>
-#include <zctx.h>
-#include <zfile.h>
-#include <zframe.h>
-#include <zhash.h>
-#include <zlist.h>
-#include <zloop.h>
-#include <zmsg.h>
-#include <zsocket.h>
-#include <zsockopt.h>
-#include <zstr.h>
-#include <zthread.h>
+#include "zclock.h"
+#include "zctx.h"
+#include "zfile.h"
+#include "zframe.h"
+#include "zlist.h"
+#include "zhash.h"
+#include "zloop.h"
+#include "zmsg.h"
+#include "zmutex.h"
+#include "zsocket.h"
+#include "zsockopt.h"
+#include "zstr.h"
+#include "zsys.h"
+#include "zthread.h"
+#include "zbeacon.h"
 
 #endif

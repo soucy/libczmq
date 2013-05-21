@@ -11,6 +11,7 @@ src/stamp-h1
 src/mtrace.txt
 src/outbin
 src/czmq_selftest
+doc/*.3
 doc/*.7
 doc/*.xml
 src/czmq.la
@@ -33,3 +34,5 @@ win32/czmq_selftest.exe.embed.manifest
 win32/czmq_selftest.exe.embed.manifest.res
 win32/czmq_selftest.exe.intermediate.manifest
 win32/czmq_selftest.vcproj.WS200902.user.user
+builds/mingw32/*.o
+

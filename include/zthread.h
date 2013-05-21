@@ -2,7 +2,7 @@
     zthread - working with system threads
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -52,8 +52,8 @@ CZMQ_EXPORT void *
     zthread_fork (zctx_t *ctx, zthread_attached_fn *thread_fn, void *args);
 
 //  Self test of this class
-int
-    zthread_test (Bool verbose);
+CZMQ_EXPORT int
+    zthread_test (bool verbose);
 //  @end
 
 #ifdef __cplusplus

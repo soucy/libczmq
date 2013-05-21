@@ -2,7 +2,7 @@
     zstr - sending and receiving strings
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -40,14 +40,21 @@ CZMQ_EXPORT char *
 CZMQ_EXPORT char *
     zstr_recv_nowait (void *socket);
 
-//  Send a string to a socket in 0MQ string format
+//  Send a formatted string to a socket
 CZMQ_EXPORT int
-    zstr_send (void *socket, const char *string);
+    zstr_send (void *socket, const char *format, ...);
 
-//  Send a string to a socket in 0MQ string format, with MORE flag
+//  Send a formatted string to a socket, with MORE flag
 CZMQ_EXPORT int
-    zstr_sendm (void *socket, const char *string);
+    zstr_sendm (void *socket, const char *format, ...);
 
+//  Self test of this class
+CZMQ_EXPORT int
+    zstr_test (bool verbose);
+//  @end
+
+//  Deprecated methods
+//  -----------------------------------------------------------
 //  Send a formatted string to a socket
 CZMQ_EXPORT int
     zstr_sendf (void *socket, const char *format, ...);
@@ -55,11 +62,6 @@ CZMQ_EXPORT int
 //  Send formatted C string to socket with MORE flag
 CZMQ_EXPORT int
     zstr_sendfm (void *socket, const char *format, ...);
-
-//  Self test of this class
-int
-    zstr_test (Bool verbose);
-//  @end
 
 #ifdef __cplusplus
 }

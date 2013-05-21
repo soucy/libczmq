@@ -2,7 +2,7 @@
     zhash - generic type-free hash container
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -24,15 +24,15 @@
     =========================================================================
 */
 
-#ifndef __ZFL_HASH_H_INCLUDED__
-#define __ZFL_HASH_H_INCLUDED__
+#ifndef __ZHASH_H_INCLUDED__
+#define __ZHASH_H_INCLUDED__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 //  Opaque class structure
-typedef struct _zhash zhash_t;
+typedef struct _zhash_t zhash_t;
 
 //  @interface
 //  Callback function for zhash_foreach method
@@ -86,14 +86,38 @@ CZMQ_EXPORT void *
 CZMQ_EXPORT size_t
     zhash_size (zhash_t *self);
 
+//  Make copy of hash table
+CZMQ_EXPORT zhash_t *
+    zhash_dup (zhash_t *self);
+
+//  Return keys for items in table
+CZMQ_EXPORT zlist_t *
+    zhash_keys (zhash_t *self);
+    
 //  Apply function to each item in the hash table. Items are iterated in no
 //  defined order. Stops if callback function returns non-zero and returns
 //  final return code from callback function (zero = success).
 CZMQ_EXPORT int
     zhash_foreach (zhash_t *self, zhash_foreach_fn *callback, void *argument);
 
+//  Save hash table to a text file in name=value format. Hash values must be
+//  printable strings; keys may not contain '=' character. Returns 0 if OK,
+//  else -1 if a file error occurred.
+CZMQ_EXPORT int
+    zhash_save (zhash_t *self, char *filename);
+
+//  Load hash table from a text file in name=value format; hash table must
+//  already exist. Hash values must printable strings; keys may not contain
+//  '=' character. Returns 0 if OK, else -1 if a file was not readable.
+CZMQ_EXPORT int
+    zhash_load (zhash_t *self, char *filename);
+
+//  Set hash for automatic value destruction
+CZMQ_EXPORT void
+    zhash_autofree (zhash_t *self);
+    
 //  Self test of this class
-void
+CZMQ_EXPORT void
     zhash_test (int verbose);
 //  @end
 

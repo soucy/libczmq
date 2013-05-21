@@ -4,7 +4,7 @@
     Runs all selftests.
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of czmq, the high-level C binding for 0MQ:
@@ -26,27 +26,15 @@
     =========================================================================
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zclock.h"
-#include "../include/zctx.h"
-#include "../include/zfile.h"
-#include "../include/zframe.h"
-#include "../include/zhash.h"
-#include "../include/zlist.h"
-#include "../include/zloop.h"
-#include "../include/zmsg.h"
-#include "../include/zsocket.h"
-#include "../include/zsockopt.h"
-#include "../include/zstr.h"
-#include "../include/zthread.h"
+#include "../include/czmq.h"
 
 int main (int argc, char *argv [])
 {
-    Bool verbose;
+    bool verbose;
     if (argc == 2 && streq (argv [1], "-v"))
-        verbose = TRUE;
+        verbose = true;
     else
-        verbose = FALSE;
+        verbose = false;
 
     printf ("Running czmq self tests...\n");
 
@@ -58,10 +46,13 @@ int main (int argc, char *argv [])
     zlist_test (verbose);
     zloop_test (verbose);
     zmsg_test (verbose);
+    zmutex_test (verbose);
     zsocket_test (verbose);
     zsockopt_test (verbose);
     zstr_test (verbose);
+    zsys_test (verbose);
     zthread_test (verbose);
+    zbeacon_test (verbose);
     printf ("Tests passed OK\n");
     return 0;
 }

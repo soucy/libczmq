@@ -2,7 +2,7 @@
     zframe - working with single message frames
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -92,7 +92,7 @@ CZMQ_EXPORT char *
     zframe_strdup (zframe_t *self);
 
 //  Return TRUE if frame body is equal to string, excluding terminator
-CZMQ_EXPORT Bool
+CZMQ_EXPORT bool
     zframe_streq (zframe_t *self, const char *string);
 
 // Return frame zero copy indicator (1 or 0)
@@ -105,7 +105,7 @@ CZMQ_EXPORT int
 
 //  Return TRUE if two frames have identical size and data
 //  If either frame is NULL, equality is always false.
-CZMQ_EXPORT Bool
+CZMQ_EXPORT bool
     zframe_eq (zframe_t *self, zframe_t *other);
 
 //  Print contents of frame to stderr
@@ -116,9 +116,13 @@ CZMQ_EXPORT void
 CZMQ_EXPORT void
     zframe_reset (zframe_t *self, const void *data, size_t size);
 
+//  Set the free callback for frame
+CZMQ_EXPORT void
+    zframe_freefn(zframe_t *self, zframe_free_fn *free_fn, void *arg);
+
 //  Self test of this class
-int
-    zframe_test (Bool verbose);
+CZMQ_EXPORT int
+    zframe_test (bool verbose);
 //  @end
 
 #ifdef __cplusplus

@@ -2,7 +2,7 @@
     zmsg - working with multipart messages
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -34,12 +34,7 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zctx.h"
-#include "../include/zframe.h"
-#include "../include/zlist.h"
-#include "../include/zsocket.h"
-#include "../include/zmsg.h"
+#include "../include/czmq.h"
 
 //  Structure of our class
 
@@ -96,15 +91,15 @@ zmsg_destroy (zmsg_t **self_p)
 //  the zloop class or zmq_poll to check for socket input before receiving.
 
 zmsg_t *
-zmsg_recv (void *socket)
+zmsg_recv (void *zocket)
 {
-    assert (socket);
+    assert (zocket);
     zmsg_t *self = zmsg_new ();
     if (!self)
         return NULL;
 
     while (1) {
-        zframe_t *frame = zframe_recv (socket);
+        zframe_t *frame = zframe_recv (zocket);
         if (!frame) {
             zmsg_destroy (&self);
             break;              //  Interrupted or terminated
@@ -126,17 +121,17 @@ zmsg_recv (void *socket)
 //  if zmsg is null.
 
 int
-zmsg_send (zmsg_t **self_p, void *socket)
+zmsg_send (zmsg_t **self_p, void *zocket)
 {
     assert (self_p);
-    assert (socket);
+    assert (zocket);
     zmsg_t *self = *self_p;
 
     int rc = 0;
     if (self) {
         zframe_t *frame = (zframe_t *) zlist_pop (self->frames);
         while (frame) {
-            rc = zframe_send (&frame, socket,
+            rc = zframe_send (&frame, zocket,
                               zlist_size (self->frames)? ZFRAME_MORE: 0);
             if (rc != 0)
                 break;
@@ -234,7 +229,6 @@ zmsg_pushmem (zmsg_t *self, const void *src, size_t size)
         return -1;
 }
 
-
 //  --------------------------------------------------------------------------
 //  Add block of memory to the end of the message, as a new frame.
 
@@ -251,6 +245,22 @@ zmsg_addmem (zmsg_t *self, const void *src, size_t size)
         return -1;
 }
 
+//  --------------------------------------------------------------------------
+//  Add block of memory to the end of the message, as a new frame.
+//  The new frame is zero-copy-constructed (see zframe_new_zero_copy(...) for detailed description)
+
+int
+zmsg_addmem_zero_copy (zmsg_t *self, void *src, size_t size, zframe_free_fn *free_fn, void *arg)
+{
+    assert (self);
+    zframe_t *frame = zframe_new_zero_copy (src, size, free_fn, arg);
+    if (frame) {
+        self->content_size += size;
+        return zlist_append (self->frames, frame);
+    }
+    else
+        return -1;
+}
 
 //  --------------------------------------------------------------------------
 //  Push string as new frame to front of message
@@ -462,7 +472,7 @@ zmsg_load (zmsg_t *self, FILE *file)
     if (!self)
         return NULL;
 
-    while (TRUE) {
+    while (true) {
         size_t frame_size;
         size_t rc = fread (&frame_size, sizeof (frame_size), 1, file);
         if (rc == 1) {
@@ -654,7 +664,7 @@ zmsg_dump (zmsg_t *self)
 //  Selftest
 
 int
-zmsg_test (Bool verbose)
+zmsg_test (bool verbose)
 {
     printf (" * zmsg: ");
 

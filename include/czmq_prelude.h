@@ -2,7 +2,7 @@
     czmq_prelude.h - CZMQ environment
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -220,7 +220,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
@@ -279,7 +278,6 @@
 #   include <sys/wait.h>
 #   include <sys/uio.h>                 //  This is required to make CZMQ compile with libzmq/3.x
 #   include <netinet/in.h>              //  Must come before arpa/inet.h
-#   include <uuid/uuid.h>
 #   if (!defined (__UTYPE_ANDROID)) && (!defined (__UTYPE_IBMAIX)) && (!defined (__UTYPE_HPUX)) && (!defined (__UTYPE_SUNOS))
 #       include <ifaddrs.h>
 #   endif
@@ -366,7 +364,6 @@
 
 //- Data types --------------------------------------------------------------
 
-typedef          int    Bool;           //  Boolean TRUE/FALSE value
 typedef unsigned char   byte;           //  Single unsigned byte = 8 bits
 typedef unsigned short  dbyte;          //  Double byte = 16 bits
 typedef unsigned int    qbyte;          //  Quad byte = 32 bits
@@ -375,17 +372,23 @@ typedef unsigned int    qbyte;          //  Quad byte = 32 bits
 
 #define streq(s1,s2)    (!strcmp ((s1), (s2)))
 #define strneq(s1,s2)   (strcmp ((s1), (s2)))
-#define tblsize(x)      (sizeof (x) / sizeof ((x) [0]))
-#define tbllast(x)      (x [tblsize (x) - 1])
+
 //  Provide random number from 0..(num-1)
 #if (defined (__WINDOWS__)) || (defined (__UTYPE_IBMAIX)) || (defined (__UTYPE_HPUX)) || (defined (__UTYPE_SUNOS))
 #   define randof(num)  (int) ((float) (num) * rand () / (RAND_MAX + 1.0))
 #else
 #   define randof(num)  (int) ((float) (num) * random () / (RAND_MAX + 1.0))
 #endif
-#if (!defined (TRUE))
-#    define TRUE        1               //  ANSI standard
-#    define FALSE       0
+
+// Windows MSVS doesn't have stdbool
+#if (defined (__WINDOWS__))
+#    if (!defined(__cplusplus) && (!defined (true)))
+#        define true 1
+#        define false 0
+         typedef char bool;
+#    endif
+#else
+#   include <stdbool.h>
 #endif
 
 //- A number of POSIX and C99 keywords and data types -----------------------
@@ -395,15 +398,20 @@ typedef unsigned int    qbyte;          //  Quad byte = 32 bits
 #   define strtoull _strtoui64
 #   define srandom srand
 #   define TIMEZONE _timezone
-#   define snprintf _snprintf
-#   define vsnprintf _vsnprintf
+#   if (!defined (__MINGW32__))
+#       define snprintf _snprintf
+#       define vsnprintf _vsnprintf
+#   endif
     typedef unsigned long ulong;
     typedef unsigned int  uint;
+#   if (!defined (__MINGW32__)) 
+    typedef int mode_t;
     typedef __int32 int32_t;
     typedef __int64 int64_t;
     typedef unsigned __int32 uint32_t;
     typedef unsigned __int64 uint64_t;
     typedef long ssize_t;
+#   endif 
 #elif (defined (__APPLE__))
     typedef unsigned long ulong;
     typedef unsigned int uint;
@@ -455,16 +463,14 @@ static inline void *
 
 //- DLL exports -------------------------------------------------------------
 
-#if (defined (__WINDOWS__))
-#   if defined DLL_EXPORT
+#if defined (_WINDLL)
+#   if defined LIBCZMQ_EXPORTS
 #       define CZMQ_EXPORT __declspec(dllexport)
 #   else
 #       define CZMQ_EXPORT __declspec(dllimport)
 #   endif
 #else
 #   define CZMQ_EXPORT
-#endif
-
 #endif
 
 //- Always include ZeroMQ header file ---------------------------------------
@@ -495,4 +501,6 @@ static inline void *
 #   define ZMQ_POLL_MSEC    1000        //  zmq_poll is usec
 #elif ZMQ_VERSION_MAJOR == 3 || ZMQ_VERSION_MAJOR == 4
 #   define ZMQ_POLL_MSEC    1           //  zmq_poll is msec
+#endif
+
 #endif

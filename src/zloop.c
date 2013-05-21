@@ -2,7 +2,7 @@
     zloop - event-driven reactor
 
     -------------------------------------------------------------------------
-    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright (c) 1991-2013 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
     This file is part of CZMQ, the high-level C binding for 0MQ:
@@ -34,13 +34,7 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zclock.h"
-#include "../include/zctx.h"
-#include "../include/zlist.h"
-#include "../include/zstr.h"
-#include "../include/zsocket.h"
-#include "../include/zloop.h"
+#include "../include/czmq.h"
 
 typedef struct _s_poller_t s_poller_t;
 typedef struct _s_timer_t s_timer_t;
@@ -53,8 +47,8 @@ struct _zloop_t {
     size_t poll_size;           //  Size of poll set
     zmq_pollitem_t *pollset;    //  zmq_poll set
     s_poller_t *pollact;        //  Pollers for this poll set
-    Bool dirty;                 //  True if pollset needs rebuilding
-    Bool verbose;               //  True if verbose tracing wanted
+    bool dirty;                 //  True if pollset needs rebuilding
+    bool verbose;               //  True if verbose tracing wanted
     zlist_t *zombies;           //  List of timers to kill
 };
 
@@ -63,6 +57,7 @@ struct _s_poller_t {
     zmq_pollitem_t item;
     zloop_fn *handler;
     void *arg;
+    bool ignore_errors;
     int errors;                 //  If too many errors, kill poller
 };
 
@@ -79,6 +74,7 @@ s_poller_new (zmq_pollitem_t *item, zloop_fn handler, void *arg)
 {
     s_poller_t *poller = (s_poller_t *) zmalloc (sizeof (s_poller_t));
     if (poller) {
+        poller->ignore_errors = (item->events & ZMQ_IGNERR) != 0;
         poller->item = *item;
         poller->handler = handler;
         poller->arg = arg;
@@ -131,7 +127,7 @@ s_rebuild_pollset (zloop_t *self)
         item_nbr++;
         poller = (s_poller_t *) zlist_next (self->pollers);
     }
-    self->dirty = FALSE;
+    self->dirty = false;
     return 0;
 }
 
@@ -235,10 +231,10 @@ zloop_poller (zloop_t *self, zmq_pollitem_t *item, zloop_fn handler, void *arg)
 
     s_poller_t *poller = s_poller_new (item, handler, arg);
     if (poller) {
-        if (zlist_push (self->pollers, poller))
+        if (zlist_append (self->pollers, poller))
             return -1;
 
-        self->dirty = TRUE;
+        self->dirty = true;
         if (self->verbose)
             zclock_log ("I: zloop: register %s poller (%p, %d)",
                 item->socket? zsocket_type_str (item->socket): "FD",
@@ -267,7 +263,7 @@ zloop_poller_end (zloop_t *self, zmq_pollitem_t *item)
         ||  (item->fd     && item->fd     == poller->item.fd)) {
             zlist_remove (self->pollers, poller);
             free (poller);
-            self->dirty = TRUE;
+            self->dirty = true;
         }
         poller = (s_poller_t *) zlist_next (self->pollers);
     }
@@ -291,7 +287,7 @@ zloop_timer (zloop_t *self, size_t delay, size_t times, zloop_fn handler, void *
     s_timer_t *timer = s_timer_new (delay, times, handler, arg);
     if (!timer)
         return -1;
-    if (zlist_push (self->timers, timer))
+    if (zlist_append (self->timers, timer))
         return -1;
     if (self->verbose)
         zclock_log ("I: zloop: register timer delay=%d times=%d", delay, times);
@@ -324,7 +320,7 @@ zloop_timer_end (zloop_t *self, void *arg)
 //  --------------------------------------------------------------------------
 //  Set verbose tracing of reactor on/off
 void
-zloop_set_verbose (zloop_t *self, Bool verbose)
+zloop_set_verbose (zloop_t *self, bool verbose)
 {
     self->verbose = verbose;
 }
@@ -334,7 +330,7 @@ zloop_set_verbose (zloop_t *self, Bool verbose)
 //  Start the reactor. Takes control of the thread and returns when the 0MQ
 //  context is terminated or the process is interrupted, or any event handler
 //  returns -1. Event handlers may register new sockets and timers, and
-//  cancel sockets. Returns 0 if interrupted, -1 if cancelled by a
+//  cancel sockets. Returns 0 if interrupted, -1 if canceled by a
 //  handler, positive on internal error
 
 int
@@ -374,7 +370,7 @@ zloop_start (zloop_t *self)
                     zclock_log ("I: zloop: call timer handler");
                 rc = timer->handler (self, NULL, timer->arg);
                 if (rc == -1)
-                    break;      //  Timer handler signalled break
+                    break;      //  Timer handler signaled break
                 if (timer->times && --timer->times == 0) {
                     zlist_remove (self->timers, timer);
                     free (timer);
@@ -386,10 +382,12 @@ zloop_start (zloop_t *self)
         }
         //  Handle any pollers that are ready
         size_t item_nbr;
-        for (item_nbr = 0; item_nbr < self->poll_size; item_nbr++) {
+        for (item_nbr = 0; item_nbr < self->poll_size && rc >= 0; item_nbr++) {
             s_poller_t *poller = &self->pollact [item_nbr];
             assert (self->pollset [item_nbr].socket == poller->item.socket);
-            if (self->pollset [item_nbr].revents & ZMQ_POLLERR) {
+            
+            if ((self->pollset [item_nbr].revents & ZMQ_POLLERR)
+            && !poller->ignore_errors) {
                 if (self->verbose)
                     zclock_log ("I: zloop: can't poll %s socket (%p, %d): %s",
                         poller->item.socket?
@@ -414,7 +412,7 @@ zloop_start (zloop_t *self)
                         poller->item.socket, poller->item.fd);
                 rc = poller->handler (self, &self->pollset [item_nbr], poller->arg);
                 if (rc == -1)
-                    break;      //  Poller handler signalled break
+                    break;      //  Poller handler signaled break
             }
         }
         //  Now handle any timer zombies
@@ -426,6 +424,7 @@ zloop_start (zloop_t *self)
                 if (timer->arg == arg) {
                     zlist_remove (self->timers, timer);
                     free (timer);
+                    break;
                 }
                 timer = (s_timer_t *) zlist_next (self->timers);
             }
@@ -454,8 +453,8 @@ s_socket_event (zloop_t *loop, zmq_pollitem_t *item, void *arg)
     return -1;
 }
 
-int
-zloop_test (Bool verbose)
+void
+zloop_test (bool verbose)
 {
     printf (" * zloop: ");
     int rc = 0;
@@ -489,5 +488,4 @@ zloop_test (Bool verbose)
     zctx_destroy (&ctx);
     //  @end
     printf ("OK\n");
-    return 0;
 }

@@ -5,12 +5,13 @@ AC_PREREQ(2.61)
 # Change the version number below after doing a public release.
 # The version in git should reflect the *next* version planned.
 # Version must be MAJOR.MINOR.PATCH otherwise things will break.
+# Make sure you also updated include/czmq.h to match.
 #
-AC_INIT([czmq],[1.3.0],[zeromq-dev@lists.zeromq.org])
+AC_INIT([czmq],[1.4.1],[zeromq-dev@lists.zeromq.org])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
-AM_CONFIG_HEADER(src/platform.h)
+AC_CONFIG_HEADERS([src/platform.h])
 AM_INIT_AUTOMAKE(tar-ustar)
 
 # This defines PACKAGE_VERSION_... in src/platform.h
@@ -40,7 +41,7 @@ AC_SUBST(LTVER)
 # Capture c flags
 CZMQ_ORIG_CFLAGS="${CFLAGS:-none}"
 
-# Checks for programs.
+# Checks for programs
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
@@ -49,9 +50,11 @@ AC_PROG_LIBTOOL
 AC_PROG_SED
 AC_PROG_AWK
 
-# Checks for libraries.
+# Checks for libraries
 AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([sodium], [sodium_init])
 
+# Code coverage
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
                   [With GCC Code Coverage reporting.])],
                   [CZMQ_GCOV="$withval"])
@@ -89,8 +92,9 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <zmq.h>],
                [AC_MSG_RESULT([yes])],
                [AC_MSG_ERROR([no. Please specify libzmq installation prefix using --with-libzmq])])
 
-#Whether we are on mingw or not.
+# Platform specific checks
 czmq_on_mingw32="no"
+czmq_on_android="no"
 
 # Host speciffic checks
 AC_CANONICAL_HOST
@@ -125,6 +129,13 @@ case "${host_os}" in
         # Define on Linux to enable all library features
         CPPFLAGS="-D_GNU_SOURCE -DLINUX $CPPFLAGS"
         AC_DEFINE(CZMQ_HAVE_LINUX, 1, [Have Linux OS])
+        
+        case "${host_os}" in
+            *android*)
+                AC_DEFINE(CZMQ_HAVE_ANDROID, 1, [Have Android OS])
+                czmq_on_android="yes"
+            ;;
+        esac
         ;;
     *solaris*)
         # Define on Solaris to enable all library features
@@ -183,6 +194,12 @@ esac
 AC_HEADER_STDC
 AC_CHECK_HEADERS(errno.h arpa/inet.h netinet/tcp.h netinet/in.h stddef.h \
 stdlib.h string.h sys/socket.h sys/time.h unistd.h limits.h)
+AC_CHECK_HEADERS([net/if.h net/if_media.h linux/wireless.h], [], [],
+[
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -194,21 +211,20 @@ AC_HEADER_TIME
 AC_TYPE_UINT32_T
 AC_C_VOLATILE
 
-# Math libraries
-AC_CHECK_LIB([m], [pow])
-
 # These options are GNU compiler specific.
 if test "x$GCC" = "xyes"; then
     CPPFLAGS="-pedantic -Werror -Wall ${CPPFLAGS}"
 fi
 
 AM_CONDITIONAL(ON_MINGW, test "x$czmq_on_mingw32" = "xyes")
+AM_CONDITIONAL(ON_ANDROID, test "x$czmq_on_android" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$czmq_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$czmq_build_doc" = "xyes")
 
 # Checks for library functions.
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS(perror gettimeofday memset)
+AC_CHECK_FUNCS(perror gettimeofday memset getifaddrs freeifaddrs)
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile src/libczmq.pc)
-
+# Specify output files
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile src/libczmq.pc])
+AC_OUTPUT
