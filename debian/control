@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Alessandro Ghedini <al3xbio@gmail.com>
 Uploaders: Gergely Nagy <algernon@madhouse-project.org>
 Build-Depends: debhelper (>= 8), autotools-dev,
- libpgm-dev, libzmq-dev, uuid-dev
+ libpgm-dev, uuid-dev
 Standards-Version: 3.9.2
 Section: libs
 Homepage: http://czmq.zeromq.org/
@@ -50,7 +50,6 @@ Description: High-level C binding for ZeroMQ (development files)
  This package provides the development files for czmq.
 
 Package: libczmq-dbg
-Priority: extra
 Section: debug
 Architecture: any
 Depends: ${misc:Depends}, libczmq0 (= ${binary:Version})
