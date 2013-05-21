@@ -1,3 +1,195 @@
+czmq (1:1.4.1-vyatta-1) unstable; urgency=low
+
+  [ Michael Haberler ]
+  * zloop_poller: control disabling of event handler on POLLERR
+  * demo program for using ZMQ_IGNERR patch
+
+  [ Pieter Hintjens ]
+  * Added support for ZMQ_ROUTER_MANDATORY, ZMQ_XPUB_VERBOSE, and ZMQ_DELAY_ATTACH_ON_CONNECT
+  * Make zsockopt robust against out-of-date libzmq versions
+  * Fixed issue #83
+  * Improved zthread documentation
+  * Generated documentation
+  * Changes for V1.3.1
+  * Generated documentation
+  * Generated documentation
+  * zhash_keys wasn't defined, fixed that
+  * Fixed setsockopt.c to work with ZeroMQ/3.2.1
+  * Added zmutex class
+  * Code cleanups
+  * Generated documentation
+  * Generated documentation
+  * zsocket_bind no longer reuses dynamic ports
+  * Upated for V1.3.2
+  * Bind did not correctly bump port number in all cases
+  * Removed code that avoided reusing ports since this will not work in a multi-process scenario, and thus gives clients no gurantees. The case of old peers connecting to reused ports has to be solved at the higher protocol level.
+  * Added support for ZMQ_ROUTER_RAW
+
+  [ Min(Dongmin Yu) ]
+  * when ctx destroyed zsocket_bind can be infinite
+
+  [ Pieter Hintjens ]
+  * Removed HWM=1 on pipe
+  * zhash_dup needs to copy string values
+  * Fixed zhash test case, improved hash calculation
+  * Cosmetic whitespace fixes
+  * Added zhash load/save and autofree methods
+  * Removed setting of HWM on parent side of pipe
+  * Removed bogus dependency on uuid.h
+
+  [ KIU Shueng Chuan ]
+  * detect when compiling with MINGW32 to avoid typedef redefinition error on C99 size types
+
+  [ Pieter Hintjens ]
+  * Replaced TRUE/FALSE with true/false
+  * Improved containers handling of autofree items
+
+  [ KIU Shueng Chuan ]
+  * on MinGW32, use compiler provided [v]snprintf
+  * release thread handle
+
+  [ Pieter Hintjens ]
+  * Updated for next release 1.3.3
+  * Fixed #ifdef order in header file
+  * Added printf formatting to send/sendm, deprecated sendf/sendfm
+  * Added zsys class for non-portable file system functions
+  * Cosmetic change
+  * If zctx_interrupted is non-zero, does not install signal handler
+
+  [ Felipe cruz ]
+  * Make zctx_destroy restore original sighandler
+
+  [ Pieter Hintjens ]
+  * Fixed signal handling - non-portable signal code moved to zsys - zsys_handlers_set (NULL) to prevent CZMQ installing its handlers - note: no longer a side-effect of setting zctx_interrupted to 1 - zsys_handlers_reset () at exit to restore default handlers
+  * Was wrongly saving default handlers
+  * Removed use of deprecated send/recv methods
+  * Revert "Removed use of deprecated send/recv methods"
+
+  [ KIU Shueng Chuan ]
+  * missing __UNIX__ check for zsys_handler_reset
+
+  [ Pieter Hintjens ]
+  * Moved file handling functions into zfile class
+  * Removed tblsize/tbllast macros
+  * stdbool.h is not available on MSVC
+  * Updated copyrights to 2013
+  * Fixed issue #113
+
+  [ unknown ]
+  * Fixed issue #113.
+
+  [ Pieter Hintjens ]
+  * Fixed issue #114
+  * Cosmetic fixes to conform to CLASS (RFC21)
+  * Minor code cleanups
+  * Updated to refer to CLASS spec for style
+  * Fixed deprecated autotools configuration
+  * Introduced compile error into zloop - fixed
+  * Fixed deprecated autotools configuration
+
+  [ Sven-Thorsten Dietrich ]
+  * Remove generated files and add them to .gitignore.
+
+  [ Pieter Hintjens ]
+  * Added new zbeacon class
+  * Edited NEWS for 1.4.0
+  * ENONET not defined on OS/X
+
+  [ KIU Shueng Chuan ]
+  * fix zfile self test assertion
+  * make zbeacon socket usage compatible with WinSock
+  * oops, missing semicolon breaks non-Windows builds
+  * typedef order reversed
+  * add simple Makefile for mingw32
+
+  [ Pieter Hintjens ]
+  * Clarified zlist autofree method
+  * Clarified API
+
+  [ Apostolis Xekoukoulotakis ]
+  * zlist_remove allows for iterative removal of items
+
+  [ Pieter Hintjens ]
+  * Upgraded to C4.1
+  * Adding win32 build directory to tarballs
+  * Moved win32 to builds/msvc for consistency
+
+  [ AJ Lewis ]
+  * Fix windows builds * Only define true/false and typedef char bool on Windows when no building using   C++ and true isn't defined.  On all other platforms just use stdbool.h. * create a typedef for mode_t when on Windows * Only include platform.h on non-Windows platforms * Explicitly cast return type from mallocs - czmq is built with the C++ compiler   on windows, so this is required. * Add zfile.c and zsys.c to the czmq vcproj definition * Add Ws2_32.lib and Iphlpapi.lib to the czmq_selftest.vcproj dependencies list;   these are needed for socket-type operations.
+  * Replace TRUE/FALSE with true/false in zbeacon.c to fix *NIX builds
+  * Fix Solaris builds - they need sys/sockio.h for SIOCGIFADDR defs
+  * Add configurations to the solution file to build czmq DLLs  * Adds two new configurations in the Solution: DebugDLL and ReleaseDLL  * czmq_selftest does not build when the DLL config is selected because    the *_test() functions aren't exported by the DLL, so the build would    fail
+
+  [ KIU Shueng Chuan ]
+  * mingw32 already defines mode_t in sys/types.h
+
+  [ Timothee TTimo Besset ]
+  * Convert to MSVC 11
+  * Silence warning
+  * Fix all configurations in the MSVC project. czmq DLL config uses libzmq DLL config etc.
+  * I don't think the dllimport is intended here. It causes external programs using the header to try and link the symbols only from a DLL, breaking static linking. Programs that dynamically link against czmq DLL should define DLL_EXPORT and will be fine.
+
+  [ AJ Lewis ]
+  * Fix up building czmq as a DLL
+  * Fix up czmq_selftest builds on Windows in DLL mode
+  * Remove stray include file from czmq.vcproj
+  * Add x64 configuration to Windows VC90 project files
+
+  [ Timothee TTimo Besset ]
+  * Update the MSVC 2012 project to match the new DLL setup
+
+  [ jpulver ]
+  * Added NULL pointer check to s_get_interface
+
+  [ AJ Lewis ]
+  * Adjust the library paths for x64 builds to look in libzmq\lib\x64 first
+  * Make sure LIBCZMQ_EXPORTS is defined for all DLL configurations
+
+  [ James Tucker ]
+  * Enable callbacks on zframe_destroy
+
+  [ Pieter Hintjens ]
+  * Fixed issue #144
+  * Updated version for 1.4.0
+  * Fixed some errors in NEWS
+  * Removed unneeded zmq_msg_close calls
+
+  [ Stephen Wolf ]
+  * update man pages
+  * move czmq API man pages to section 3
+
+  [ Pieter Hintjens ]
+  * Added configure check for libsodium
+  * Fixed some typedef inconsistency
+
+  [ Bulat Shakirzyanov ]
+  * ensure zhash_foreach stops on non-zero return
+
+  [ Felipe cruz ]
+  * add zhash_foreach test
+  * minor cosmetic fix
+
+  [ Pieter Hintjens ]
+  * Updated NEWS for 1.4.0
+  * Using sodium_init() for library check
+  * Fixed packaging for 1.4.0
+
+  [ Uli Köhler ]
+  * Added zmsg_addmem_zero_copy
+
+  [ Pieter Hintjens ]
+  * Don't trap errors on sendto, these aren't necessarily fatal
+  * Updated NEWS for 1.4.1
+  * Updated version number for 1.4.1
+
+  [ Sven-Thorsten Dietrich ]
+  * Remove reflexive dependency on libzmq-dev
+  * Remove duplicate priority field
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <shemming@brocade.com>  Mon, 20 May 2013 22:07:31 -0700
+
 czmq (1:1.2.0-vyatta-6) unstable; urgency=low
 
   * fix branch
