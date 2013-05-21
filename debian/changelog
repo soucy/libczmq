@@ -5,7 +5,7 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   * demo program for using ZMQ_IGNERR patch
 
   [ Pieter Hintjens ]
-  * Added support for ZMQ_ROUTER_MANDATORY, ZMQ_XPUB_VERBOSE, and ZMQ_DELAY_ATTACH_ON_CONNECT
+  * Added support for more attributes
   * Make zsockopt robust against out-of-date libzmq versions
   * Fixed issue #83
   * Improved zthread documentation
@@ -22,7 +22,7 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   * zsocket_bind no longer reuses dynamic ports
   * Upated for V1.3.2
   * Bind did not correctly bump port number in all cases
-  * Removed code that avoided reusing ports since this will not work in a multi-process scenario, and thus gives clients no gurantees. The case of old peers connecting to reused ports has to be solved at the higher protocol level.
+  * Removed code that avoided reusing ports
   * Added support for ZMQ_ROUTER_RAW
 
   [ Min(Dongmin Yu) ]
@@ -38,7 +38,7 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   * Removed bogus dependency on uuid.h
 
   [ KIU Shueng Chuan ]
-  * detect when compiling with MINGW32 to avoid typedef redefinition error on C99 size types
+  * detect when compiling with MINGW32 to avoid typedef redefinition
 
   [ Pieter Hintjens ]
   * Replaced TRUE/FALSE with true/false
@@ -60,7 +60,7 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   * Make zctx_destroy restore original sighandler
 
   [ Pieter Hintjens ]
-  * Fixed signal handling - non-portable signal code moved to zsys - zsys_handlers_set (NULL) to prevent CZMQ installing its handlers - note: no longer a side-effect of setting zctx_interrupted to 1 - zsys_handlers_reset () at exit to restore default handlers
+  * Fixed signal handling
   * Was wrongly saving default handlers
   * Removed use of deprecated send/recv methods
   * Revert "Removed use of deprecated send/recv methods"
@@ -115,10 +115,10 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   * Moved win32 to builds/msvc for consistency
 
   [ AJ Lewis ]
-  * Fix windows builds * Only define true/false and typedef char bool on Windows when no building using   C++ and true isn't defined.  On all other platforms just use stdbool.h. * create a typedef for mode_t when on Windows * Only include platform.h on non-Windows platforms * Explicitly cast return type from mallocs - czmq is built with the C++ compiler   on windows, so this is required. * Add zfile.c and zsys.c to the czmq vcproj definition * Add Ws2_32.lib and Iphlpapi.lib to the czmq_selftest.vcproj dependencies list;   these are needed for socket-type operations.
+  * Fix windows builds
   * Replace TRUE/FALSE with true/false in zbeacon.c to fix *NIX builds
   * Fix Solaris builds - they need sys/sockio.h for SIOCGIFADDR defs
-  * Add configurations to the solution file to build czmq DLLs  * Adds two new configurations in the Solution: DebugDLL and ReleaseDLL  * czmq_selftest does not build when the DLL config is selected because    the *_test() functions aren't exported by the DLL, so the build would    fail
+  * Add configurations to the solution file to build czmq DLLs
 
   [ KIU Shueng Chuan ]
   * mingw32 already defines mode_t in sys/types.h
@@ -126,8 +126,8 @@ czmq (1:1.4.1-vyatta-1) unstable; urgency=low
   [ Timothee TTimo Besset ]
   * Convert to MSVC 11
   * Silence warning
-  * Fix all configurations in the MSVC project. czmq DLL config uses libzmq DLL config etc.
-  * I don't think the dllimport is intended here. It causes external programs using the header to try and link the symbols only from a DLL, breaking static linking. Programs that dynamically link against czmq DLL should define DLL_EXPORT and will be fine.
+  * Fix all configurations in the MSVC project.
+  * I don't think the dllimport is intended here.
 
   [ AJ Lewis ]
   * Fix up building czmq as a DLL
