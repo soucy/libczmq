@@ -1,3 +1,9 @@
+czmq (1:1.4.1-vyatta-5) unstable; urgency=low
+
+  * Force build after reclone
+
+ -- John Southworth <john.southworth@vyatta.com>  Wed, 22 May 2013 09:28:47 -0700
+
 czmq (1:1.4.1-vyatta-4) unstable; urgency=low
 
   * run autogen.sh on Debian Squeeze
