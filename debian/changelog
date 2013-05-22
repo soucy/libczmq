@@ -1,3 +1,9 @@
+czmq (1:1.4.1-vyatta-6) unstable; urgency=low
+
+  * force libzmq version
+
+ -- Stephen Hemminger <stephen@networkplumber.org>  Wed, 22 May 2013 11:48:17 -0700
+
 czmq (1:1.4.1-vyatta-5) unstable; urgency=low
 
   * Force build after reclone
