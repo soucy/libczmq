@@ -41,7 +41,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
 	$(top_srcdir)/config/ltversion.m4 \
-	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.in
+	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -71,8 +71,9 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+man3dir = $(mandir)/man3
+am__installdirs = "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(man7dir)"
 man7dir = $(mandir)/man7
-am__installdirs = "$(DESTDIR)$(man7dir)"
 NROFF = nroff
 MANS = $(dist_man_MANS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -193,21 +194,23 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAN1 = 
-MAN3 = 
-MAN7 = czmq.7 \
-    zclock.7 \
-    zctx.7 \
-    zfile.7 \
-    zframe.7 \
-    zhash.7 \
-    zlist.7 \
-    zloop.7 \
-    zmsg.7 \
-    zsocket.7 \
-    zsockopt.7 \
-    zstr.7 \
-    zthread.7
+MAN3 = zbeacon.3 \
+    zclock.3 \
+    zctx.3 \
+    zfile.3 \
+    zframe.3 \
+    zhash.3 \
+    zlist.3 \
+    zloop.3 \
+    zmsg.3 \
+    zmutex.3 \
+    zsocket.3 \
+    zsockopt.3 \
+    zstr.3 \
+    zsys.3 \
+    zthread.3
 
+MAN7 = czmq.7
 MAN_DOC = $(MAN1) $(MAN3) $(MAN7)
 MAN_TXT = $(MAN1:%.1=%.txt) $(MAN3:%.3=%.txt) $(MAN7:%.7=%.txt)
 @INSTALL_MAN_TRUE@dist_man_MANS = $(MAN_DOC)
@@ -254,6 +257,44 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-man3: $(dist_man_MANS)
+	@$(NORMAL_INSTALL)
+	test -z "$(man3dir)" || $(MKDIR_P) "$(DESTDIR)$(man3dir)"
+	@list=''; test -n "$(man3dir)" || exit 0; \
+	{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.3[a-z]*$$/p'; \
+	} | while read p; do \
+	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; echo "$$p"; \
+	done | \
+	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^3][0-9a-z]*$$,3,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
+	sed 'N;N;s,\n, ,g' | { \
+	list=; while read file base inst; do \
+	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
+	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man3dir)/$$inst'"; \
+	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man3dir)/$$inst" || exit $$?; \
+	  fi; \
+	done; \
+	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	while read files; do \
+	  test -z "$$files" || { \
+	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man3dir)'"; \
+	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man3dir)" || exit $$?; }; \
+	done; }
+
+uninstall-man3:
+	@$(NORMAL_UNINSTALL)
+	@list=''; test -n "$(man3dir)" || exit 0; \
+	files=`{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.3[a-z]*$$/p'; \
+	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^3][0-9a-z]*$$,3,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
+	test -z "$$files" || { \
+	  echo " ( cd '$(DESTDIR)$(man3dir)' && rm -f" $$files ")"; \
+	  cd "$(DESTDIR)$(man3dir)" && rm -f $$files; }
 install-man7: $(dist_man_MANS)
 	@$(NORMAL_INSTALL)
 	test -z "$(man7dir)" || $(MKDIR_P) "$(DESTDIR)$(man7dir)"
@@ -349,7 +390,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(MANS)
 installdirs:
-	for dir in "$(DESTDIR)$(man7dir)"; do \
+	for dir in "$(DESTDIR)$(man3dir)" "$(DESTDIR)$(man7dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -414,7 +455,7 @@ install-info: install-info-am
 
 install-info-am:
 
-install-man: install-man7
+install-man: install-man3 install-man7
 
 install-pdf: install-pdf-am
 
@@ -444,7 +485,7 @@ ps-am:
 
 uninstall-am: uninstall-man
 
-uninstall-man: uninstall-man7
+uninstall-man: uninstall-man3 uninstall-man7
 
 .MAKE: install-am install-strip
 
@@ -454,17 +495,18 @@ uninstall-man: uninstall-man7
 	install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
-	install-man7 install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-man uninstall-man7
+	install-man3 install-man7 install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-man uninstall-man3 uninstall-man7
 
 
 dist-hook : $(MAN_DOC)
 
 @BUILD_DOC_TRUE@.txt.xml:
-@BUILD_DOC_TRUE@	$(srcdir)/mkman $(top_srcdir) $<
+@BUILD_DOC_TRUE@	$(srcdir)/mkman $<
 @BUILD_DOC_TRUE@	asciidoc -d manpage -b docbook -f  $(srcdir)/asciidoc.conf \
 @BUILD_DOC_TRUE@		-aczmq_version=@PACKAGE_VERSION@ -o$@ $<
 @BUILD_DOC_TRUE@.xml.1:
