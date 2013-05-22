@@ -48,7 +48,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
 	$(top_srcdir)/config/ltversion.m4 \
-	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.in
+	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -80,9 +80,9 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libczmq_la_LIBADD =
-am_libczmq_la_OBJECTS = zclock.lo zctx.lo zfile.lo zframe.lo zhash.lo \
-	zlist.lo zloop.lo zmsg.lo zsocket.lo zsockopt.lo zstr.lo \
-	zthread.lo
+am_libczmq_la_OBJECTS = zbeacon.lo zclock.lo zctx.lo zfile.lo \
+	zframe.lo zhash.lo zlist.lo zloop.lo zmsg.lo zmutex.lo \
+	zsocket.lo zsockopt.lo zstr.lo zsys.lo zthread.lo
 libczmq_la_OBJECTS = $(am_libczmq_la_OBJECTS)
 libczmq_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -235,6 +235,7 @@ pkgconfig_DATA = libczmq.pc
 include_HEADERS = \
     ../include/czmq.h \
     ../include/czmq_prelude.h \
+    ../include/zbeacon.h \
     ../include/zclock.h \
     ../include/zctx.h \
     ../include/zfile.h \
@@ -243,12 +244,15 @@ include_HEADERS = \
     ../include/zlist.h \
     ../include/zloop.h \
     ../include/zmsg.h \
+    ../include/zmutex.h \
     ../include/zsocket.h \
     ../include/zsockopt.h \
     ../include/zstr.h \
+    ../include/zsys.h \
     ../include/zthread.h
 
 libczmq_la_SOURCES = \
+    zbeacon.c \
     zclock.c \
     zctx.c \
     zfile.c \
@@ -257,9 +261,11 @@ libczmq_la_SOURCES = \
     zlist.c \
     zloop.c \
     zmsg.c \
+    zmutex.c \
     zsocket.c \
     zsockopt.c \
     zstr.c \
+    zsys.c \
     zthread.c
 
 INCLUDES = -I$(top_srcdir)/include
@@ -408,6 +414,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/czmq_selftest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zbeacon.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zclock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zctx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zfile.Plo@am__quote@
@@ -416,9 +423,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zloop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zmsg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zmutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zsocket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zsockopt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zstr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zsys.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zthread.Plo@am__quote@
 
 .c.o:
