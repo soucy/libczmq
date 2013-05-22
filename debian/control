@@ -51,6 +51,7 @@ Description: High-level C binding for ZeroMQ (development files)
 
 Package: libczmq-dbg
 Section: debug
+Priority: extra
 Architecture: any
 Depends: ${misc:Depends}, libczmq0 (= ${binary:Version})
 Description: High-level C binding for ZeroMQ (debugging symbols)
