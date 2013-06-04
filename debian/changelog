@@ -1,3 +1,125 @@
+czmq (1:1.4.2-vyatta-1) unstable; urgency=low
+
+  [ Pieter Hintjens ]
+  * Post-package version bump to 1.4.2
+
+  [ Uli Köhler ]
+  * Added zmsg_reset_zero_copy
+  * added zframe_reset_zero_copy selftest
+  * Improve zframe_reset_zero_copy documentation
+  * Added zframe_new_empty (and corresponding test)
+  * Added zframe_sendmem + zero-copy version + tests
+  * Added missing header decls from previous pull requests
+  * Fix incorrect return code documentation for zframe_send
+  * Make zsockopt_set_subscribe, ..._unsubscribe and ..._identity take a const char* argument
+  * Update doc/zframe.txt
+  * Update doc/zsockopt.txt
+  * Added documentation for functions from previous pull requests
+  * Fix linefolding
+  * Moved sendmem functions to zsocket
+  * Fix sendmem docsg
+  * Make socket first argument in zsocket_sendmem functions
+
+  [ Pieter Hintjens ]
+  * First version of zcurve, with fixed length messages
+  * Cosmetic style fixes
+
+  [ KIU Shueng Chuan ]
+  * va_{start,end} needs to be called for each vsnprintf
+  * MSVC vsnprintf differs from POSIX
+  * fix vsnprintf usage
+
+  [ Juan López ]
+  * Removing syslog.h from czmq_prelude.h
+
+  [ AJ Lewis ]
+  * Fix zcurve.c so it builds on Windows  * Don't include platform.h when building using Visual Studio  * umask doesn't work the way it was used here, so just don't call    it on Windows  * Make sure to cast void * to the type you're assigning it to on Windows
+  * Changes nothing, just rearranges the sections as visual studio likes
+  * Add RelWithDebInfo configuration
+  * Change so we only don't include platform.h when using visual studio, but do otherwise
+  * Make build directory for Win32 RelWitDebInfo $(PlatformName)\$(ConfigurationName)
+  * Add zcurve.[ch] to the czmq project
+
+  [ Mikko ]
+  * According to documentation "Cancel all timers for a specific argument (as provided in zloop_timer)"
+  * Fix memory leak on EGAIN etc
+  * Fixes an issue where calling zloop_poller_end from handler causes potential uninitialised read on during the iteration
+
+  [ Pieter Hintjens ]
+  * Man pages rebuilt automatically
+  * Second draft of zcurve module - sending/receiving frames over DEALER-ROUTER, in selftest - new module, zblob, for size-specified binary strings
+  * zcurve works with variable messages - beginning to support metadata - removed zblob class again, it's not needed
+  * Added -lpthread to link statement
+  * Fixed lots of small faults in recently added code - variable names like 'i' and 'strSomethingBogus' - memory leaks in selftests - general indentation and layout
+  * Removed latest zero_copy additions in zframe and zsocket - the code was complex and I'm skeptical that it is necessary - it was leaking memory in selftests and I did not find the cause - if we do *need* zerocopy all over the place I'd like to find a better API
+  * Refactoring internals to use shared encrypt/decrypt functions
+  * Refactored into cleaner encrypt/decrypt calls
+  * Uses state to know when ready for messages
+  * Minor code cleanups
+  * Revert "Removed latest zero_copy additions in zframe and zsocket"
+  * Added zcurve_decode for message decoding
+  * Updated man pages
+
+  [ KIU Shueng Chuan ]
+  * vsnprintf: use stack buffer instead of heap
+
+  [ Pieter Hintjens ]
+  * zframe_reset_zero_copy removed due to multiple errors - if free_fn is null, ignores data - at end, copies data in any case, so isn't zero-copy - makes API complex for uncertain benefit
+  * Zero-copy methods slated for removal
+
+  [ Juan López Rubio ]
+  * Ignoring ENOTSOCK error from zsock_set_linger
+  * Adding a more informational assert
+
+  [ Stephen Hemminger ]
+  * zcurve: fix unused variable errors
+  * zsockopt: fix prototype mismatch
+
+  [ Pieter Hintjens ]
+  * Cosmetic change to source header formatting
+  * Added zconfig module
+  * Methods to allow creation of private files
+  * Using 'class' everywhere for consistency
+  * Testing Travis CI
+  * Regenerated source code to match headers
+  * Fixed const on string options
+  * Added cast from zmalloc, and STRONGER WARNINGS
+  * Fixed name of Travis file
+  * Disabled selftest on zcurve to patch broken master
+  * Another attempt to fix Travis CI build
+  * Fixing yet more merge conflicts, gaaargh
+  * Added ldconfig after dependency builds
+  * Added support for libsodium
+
+  [ Felipe cruz ]
+  * add travis ci build image to readme
+  * add travis image to README.txt
+
+  [ Pieter Hintjens ]
+  * ZPL name parsing was not accurate
+  * Trivial code cleanup
+  * Finished zcurve first implementation and test cases
+  * Renamed zconfig _set methods for consistency
+  * Renamed zbeacon_pipe to zbeacon_socket - left old method for compatibility, but marked as deprecated - 'pipe' was too specific about internal use of this socket - want to make this consistent with zsecure_socket ()
+  * Selftest tags were wrong
+  * Removed zcurve class - no real use cases for CZMQ applications - moving to clab experimental/incubator project
+  * Version number is now updated in include/czmq.h only
+  * Version number should be 1.4.2
+  * Updated platform builds to cover all classes
+  * Removing demo directory - these examples appear to be dead - code style is not consistent with CZMQ style standards (CLASS) - we have more complete demos elsewhere (FileMQ, Zyre at least)
+  * Removed old unused build file
+  * Working on issue #187
+
+  [ Stephen Hemminger ]
+  * Added support for ztree
+
+  [ Pieter Hintjens ]
+  * Whitespace and formatting fixes
+
+  [ Stephen Hemminger ]
+
+ -- Stephen Hemminger <stephen@networkplumber.org>  Tue, 04 Jun 2013 08:32:24 -0700
+
 czmq (1:1.4.1-vyatta-6) unstable; urgency=low
 
   * force libzmq version
