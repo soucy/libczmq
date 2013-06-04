@@ -9,24 +9,23 @@
     http://czmq.zeromq.org.
 
     This is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or (at
-    your option) any later version.
+    the terms of the GNU Lesser General Public License as published by the 
+    Free Software Foundation; either version 3 of the License, or (at your 
+    option) any later version.
 
     This software is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-    Lesser General Public License for more details.
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABIL-
+    ITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General 
+    Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this program. If not, see
-    <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Lesser General Public License 
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
     =========================================================================
 */
 
 /*
 @header
-    The zbeacon module implements a peer-to-peer discovery service for local
+    The zbeacon class implements a peer-to-peer discovery service for local
     networks. A beacon can broadcast and/or capture service announcements
     using UDP messages on the local area network. This implementation uses
     IPv4 UDP broadcasts. You can define the format of your outgoing beacons,
@@ -41,8 +40,7 @@
 */
 
 #include "../include/czmq.h"
-
-#if !defined(__WINDOWS__)
+#if !defined (__WINDOWS__)
 #   include "platform.h"
 #endif
 
@@ -57,8 +55,8 @@
 #   endif
 #endif
 
-#if defined(__UTYPE_SUNSOLARIS) || defined(__UTYPE_SUNOS)
-#   include<sys/sockio.h>
+#if defined (__UTYPE_SUNSOLARIS) || defined (__UTYPE_SUNOS)
+#   include <sys/sockio.h>
 #endif
 
 #if defined (__WINDOWS__)
@@ -70,12 +68,12 @@
 #   include <iphlpapi.h>            //  For GetAdaptersAddresses ()
 #endif
 
-//  Basic WinSock compatibility
-#if !defined(__WINDOWS__)
+//  Windows uses 
+#if !defined (__WINDOWS__)
 typedef int SOCKET;
-#define closesocket close
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
+#   define closesocket close
+#   define INVALID_SOCKET -1
+#   define SOCKET_ERROR -1
 #endif
 
 //  Constants
@@ -217,7 +215,18 @@ zbeacon_unsubscribe (zbeacon_t *self)
 
 
 //  --------------------------------------------------------------------------
-//  Get beacon socket handle, for polling
+//  Get beacon ZeroMQ socket, for polling or receiving messages
+
+void *
+zbeacon_socket (zbeacon_t *self)
+{
+    assert (self);
+    return self->pipe;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get beacon socket handle, for polling - DEPRECATED
 
 void *
 zbeacon_pipe (zbeacon_t *self)
@@ -246,6 +255,7 @@ zbeacon_test (bool verbose)
 {
     printf (" * zbeacon: ");
 
+    //  @selftest
     //  Basic test: create a service and announce it
     zctx_t *ctx = zctx_new ();
 
@@ -264,11 +274,11 @@ zbeacon_test (bool verbose)
     zbeacon_subscribe (client_beacon, NULL, 0);
 
     //  Wait for at most 1/2 second if there's no broadcast networking
-    zsocket_set_rcvtimeo (zbeacon_pipe (client_beacon), 500);
+    zsocket_set_rcvtimeo (zbeacon_socket (client_beacon), 500);
 
-    char *ipaddress = zstr_recv (zbeacon_pipe (client_beacon));
+    char *ipaddress = zstr_recv (zbeacon_socket (client_beacon));
     if (ipaddress) {
-        zframe_t *content = zframe_recv (zbeacon_pipe (client_beacon));
+        zframe_t *content = zframe_recv (zbeacon_socket (client_beacon));
         int received_port = (zframe_data (content) [0] << 8)
                         +  zframe_data (content) [1];
         assert (received_port == port_nbr);
@@ -279,7 +289,6 @@ zbeacon_test (bool verbose)
     zbeacon_destroy (&service_beacon);
     zctx_destroy (&ctx);
     
-    //  @selftest
     zbeacon_t *node1 = zbeacon_new (5670);
     zbeacon_t *node2 = zbeacon_new (5670);
     zbeacon_t *node3 = zbeacon_new (5670);
@@ -299,9 +308,9 @@ zbeacon_test (bool verbose)
 
     //  Poll on API pipe and on UDP socket
     zmq_pollitem_t pollitems [] = {
-        { zbeacon_pipe (node1), 0, ZMQ_POLLIN, 0 },
-        { zbeacon_pipe (node2), 0, ZMQ_POLLIN, 0 },
-        { zbeacon_pipe (node3), 0, ZMQ_POLLIN, 0 }
+        { zbeacon_socket (node1), 0, ZMQ_POLLIN, 0 },
+        { zbeacon_socket (node2), 0, ZMQ_POLLIN, 0 },
+        { zbeacon_socket (node3), 0, ZMQ_POLLIN, 0 }
     };
     uint64_t stop_at = zclock_time () + 1000;
     while (zclock_time () < stop_at) {
@@ -317,8 +326,8 @@ zbeacon_test (bool verbose)
 
         //  If we get a message on node 1, it must be NODE/2
         if (pollitems [0].revents & ZMQ_POLLIN) {
-            char *ipaddress = zstr_recv (zbeacon_pipe (node1));
-            char *beacon = zstr_recv (zbeacon_pipe (node1));
+            char *ipaddress = zstr_recv (zbeacon_socket (node1));
+            char *beacon = zstr_recv (zbeacon_socket (node1));
             assert (streq (beacon, "NODE/2"));
             free (ipaddress);
             free (beacon);
@@ -548,7 +557,8 @@ s_get_interface (agent_t *self)
                 self->address = *(inaddr_t *) interface->ifa_addr;
                 self->broadcast = *(inaddr_t *) interface->ifa_broadaddr;
                 self->broadcast.sin_port = htons (self->port_nbr);
-                if (s_wireless_nic (interface->ifa_name))
+                if (streq (interface->ifa_name, zsys_interface ())
+                ||  s_wireless_nic (interface->ifa_name))
                     break;
             }
             interface = interface->ifa_next;
@@ -559,19 +569,13 @@ s_get_interface (agent_t *self)
     struct ifreq ifr;
     memset (&ifr, 0, sizeof (ifr));
 
-#   if !defined (CZMQ_HAVE_ANDROID)
-    //  TODO: Using hardcoded wlan0 is ugly
-    if (!s_wireless_nic ("wlan0"))
-        s_handle_io_error ("wlan0 not exist");
-#   endif
-
     int sock = 0;
     if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
         s_handle_io_error ("socket");
 
     //  Get interface address
     ifr.ifr_addr.sa_family = AF_INET;
-    strncpy (ifr.ifr_name, "wlan0", sizeof (ifr.ifr_name));
+    strncpy (ifr.ifr_name, zsys_interface (), sizeof (ifr.ifr_name));
     int rc = ioctl (sock, SIOCGIFADDR, (caddr_t) &ifr, sizeof (struct ifreq));
     if (rc == -1)
         s_handle_io_error ("siocgifaddr");
@@ -588,7 +592,6 @@ s_get_interface (agent_t *self)
 #   endif
 
 #   elif defined (__WINDOWS__)
-    //  Currently does not filter for wireless NIC
     ULONG addr_size = 0;
     DWORD rc = GetAdaptersAddresses (AF_INET,
         GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &addr_size);
@@ -626,8 +629,8 @@ s_get_interface (agent_t *self)
 static bool
 s_wireless_nic (const char *name)
 {
-    SOCKET sock = socket (AF_INET, SOCK_DGRAM, 0);
-    if (sock == INVALID_SOCKET)
+    SOCKET udpsock = socket (AF_INET, SOCK_DGRAM, 0);
+    if (udpsock == INVALID_SOCKET)
         s_handle_io_error ("socket");
 
     bool is_nic = false;
@@ -635,7 +638,7 @@ s_wireless_nic (const char *name)
     struct ifmediareq ifmr;
     memset (&ifmr, 0, sizeof (struct ifmediareq));
     strncpy(ifmr.ifm_name, name, sizeof (ifmr.ifm_name));
-    int res = ioctl (sock, SIOCGIFMEDIA, (caddr_t) &ifmr);
+    int res = ioctl (udpsock, SIOCGIFMEDIA, (caddr_t) &ifmr);
     if (res != -1)
         is_nic = (IFM_TYPE (ifmr.ifm_current) == IFM_IEEE80211);
 
@@ -643,11 +646,11 @@ s_wireless_nic (const char *name)
     struct iwreq wrq;
     memset (&wrq, 0, sizeof (struct iwreq));
     strncpy (wrq.ifr_name, name, sizeof (wrq.ifr_name));
-    int res = ioctl (sock, SIOCGIWNAME, (caddr_t) &wrq);
+    int res = ioctl (udpsock, SIOCGIWNAME, (caddr_t) &wrq);
     if (res != -1)
         is_nic = true;
 #endif
-    closesocket (sock);
+    closesocket (udpsock);
     return is_nic;
 }
 
@@ -761,8 +764,8 @@ s_beacon_send (agent_t *self)
     //  Sending can fail if the OS is blocking multicast. In such cases we
     //  don't try to report the error. We might log this or send to an error
     //  console at some point.
-        if (size == SOCKET_ERROR)
-            /* s_handle_io_error ("sendto") */ ;
+    if (size == SOCKET_ERROR)
+        ;   //  s_handle_io_error ("sendto");
 }
 
 //  Destroy agent instance

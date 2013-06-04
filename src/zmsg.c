@@ -9,18 +9,17 @@
     http://czmq.zeromq.org.
 
     This is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or (at
-    your option) any later version.
+    the terms of the GNU Lesser General Public License as published by the 
+    Free Software Foundation; either version 3 of the License, or (at your 
+    option) any later version.
 
     This software is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-    Lesser General Public License for more details.
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABIL-
+    ITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General 
+    Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this program. If not, see
-    <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Lesser General Public License 
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
     =========================================================================
 */
 
@@ -205,10 +204,8 @@ zmsg_add (zmsg_t *self, zframe_t *frame)
 {
     assert (self);
     assert (frame);
-    int error = 0;
     self->content_size += zframe_size (frame);
-    error = zlist_append (self->frames, frame);
-    return error;
+    return zlist_append (self->frames, frame);
 }
 
 
@@ -247,7 +244,14 @@ zmsg_addmem (zmsg_t *self, const void *src, size_t size)
 
 //  --------------------------------------------------------------------------
 //  Add block of memory to the end of the message, as a new frame.
-//  The new frame is zero-copy-constructed (see zframe_new_zero_copy(...) for detailed description)
+//  The new frame is zero-copy-constructed (see zframe_new_zero_copy(...) 
+//  for detailed description)
+//  NOTE: this method is DEPRECATED and is slated for removal. These are the
+//  problems with the method:
+//  - premature optimization: do we really need this? It makes the API more
+//    complex; high-performance applications would not use zmsg in any case,
+//    they would work directly with zmq_msg objects.
+//  (PH, 2013/05/18)
 
 int
 zmsg_addmem_zero_copy (zmsg_t *self, void *src, size_t size, zframe_free_fn *free_fn, void *arg)
@@ -272,32 +276,37 @@ zmsg_pushstr (zmsg_t *self, const char *format, ...)
     assert (format);
 
     //  Format string into buffer
+    int size = 255 + 1;
+    char stackbuffer[255+1];
+    char *string = stackbuffer;
     va_list argptr;
     va_start (argptr, format);
-    int size = 255 + 1;
-    char *string = (char *) malloc (size);
-    if (!string) {
-        va_end (argptr);
-        return -1;
-    }
     int required = vsnprintf (string, size, format, argptr);
+    va_end (argptr);
+#ifdef _MSC_VER
+    if (required < 0 || required >= size) {
+        va_start (argptr, format);
+        required = _vscprintf (format, argptr);
+        va_end (argptr);
+    }
+#endif
     if (required >= size) {
         size = required + 1;
-        string = (char *) realloc (string, size);
+        string = (char *) malloc (size);
         if (!string) {
-            va_end (argptr);
             return -1;
         }
+        va_start (argptr, format);
         size = vsnprintf (string, size, format, argptr);
+        va_end (argptr);
     }
     else
         size = required;
 
-    va_end (argptr);
-
     self->content_size += size;
     zlist_push (self->frames, zframe_new (string, size));
-    free (string);
+    if (string!=stackbuffer)
+        free (string);
     return 0;
 }
 
@@ -311,32 +320,37 @@ zmsg_addstr (zmsg_t *self, const char *format, ...)
     assert (self);
     assert (format);
     //  Format string into buffer
+    int size = 255 + 1;
+    char stackbuffer[255+1];
+    char *string = stackbuffer;
     va_list argptr;
     va_start (argptr, format);
-    int size = 255 + 1;
-    char *string = (char *) malloc (size);
-    if (!string) {
-        va_end (argptr);
-        return -1;
-    }
     int required = vsnprintf (string, size, format, argptr);
+    va_end (argptr);
+#ifdef _MSC_VER
+    if (required < 0 || required >= size) {
+        va_start (argptr, format);
+        required = _vscprintf (format, argptr);
+        va_end (argptr);
+    }
+#endif    
     if (required >= size) {
         size = required + 1;
-        string = (char *) realloc (string, size);
+        string = (char *) malloc (size);
         if (!string) {
-            va_end (argptr);
             return -1;
         }
+        va_start (argptr, format);
         size = vsnprintf (string, size, format, argptr);
+        va_end (argptr);
     }
     else
         size = required;
 
-    va_end (argptr);
-
     self->content_size += size;
     zlist_append (self->frames, zframe_new (string, size));
-    free (string);
+    if (string!=stackbuffer)
+        free (string);
     return 0;
 }
 

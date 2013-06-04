@@ -9,18 +9,17 @@
     http://czmq.zeromq.org.
 
     This is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or (at
-    your option) any later version.
+    the terms of the GNU Lesser General Public License as published by the 
+    Free Software Foundation; either version 3 of the License, or (at your 
+    option) any later version.
 
     This software is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-    Lesser General Public License for more details.
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABIL-
+    ITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General 
+    Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this program. If not, see
-    <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Lesser General Public License 
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
     =========================================================================
 */
 
@@ -37,11 +36,7 @@
 @end
 */
 
-#include "../include/czmq_prelude.h"
-#include "../include/zctx.h"
-#include "../include/zsocket.h"
-#include "../include/zsockopt.h"
-#include "../include/zframe.h"
+#include "../include/czmq.h"
 
 //  Structure of our class
 
@@ -80,9 +75,31 @@ zframe_new (const void *data, size_t size)
 }
 
 //  --------------------------------------------------------------------------
+//  Constructor; Allocates a new empty (zero-sized) frame
+
+zframe_t *
+zframe_new_empty (void)
+{
+    zframe_t *self;
+
+    self = (zframe_t *) zmalloc (sizeof (zframe_t));
+    if (!self)
+        return NULL;
+    
+    zmq_msg_init (&self->zmsg);
+    return self;
+}
+
+//  --------------------------------------------------------------------------
 //  Constructor; Allows zero-copy semantics.
 //  Zero-copy frame is initialised if data != NULL, size > 0, free_fn != 0
 //  'arg' is a void pointer that is passed to free_fn as second argument
+//  NOTE: this method is DEPRECATED and is slated for removal. These are the
+//  problems with the method:
+//  - premature optimization: do we really need this? It makes the API more
+//    complex; high-performance applications would not use zmsg in any case,
+//    they would work directly with zmq_msg objects.
+//  (PH, 2013/05/18)
 
 zframe_t *
 zframe_new_zero_copy (void *data, size_t size, zframe_free_fn *free_fn, void *arg)
@@ -191,14 +208,14 @@ zframe_send (zframe_t **self_p, void *zocket, int flags)
                 return -1;
         }
         else {
-            if (zmq_sendmsg (zocket, &self->zmsg, snd_flags) == -1)
-                return -1;
+            int rc = zmq_sendmsg (zocket, &self->zmsg, snd_flags);
             zframe_destroy (self_p);
+            if (rc == -1)
+                return -1;
         }
     }
     return 0;
 }
-
 
 //  --------------------------------------------------------------------------
 //  Return size of frame.
@@ -300,7 +317,10 @@ zframe_more (const zframe_t *self)
 }
 
 // --------------------------------------------------------------------------
-// Return frame zero copy indicator (1 or 0)
+//  Return frame zero copy indicator (1 or 0)
+//  NOTE: this method is DEPRECATED and is slated for removal.
+//  Attached to zframe_new_zero_copy
+//  (PH, 2013/05/18)
 
 int
 zframe_zero_copy (zframe_t *self)
@@ -376,6 +396,16 @@ zframe_reset (zframe_t *self, const void *data, size_t size)
     memcpy (zmq_msg_data (&self->zmsg), data, size);
 }
 
+//  --------------------------------------------------------------------------
+//  Set the free callback for frame
+//  NOTE: this method is DEPRECATED and is slated for removal. These are the
+//  problems with the method:
+//  - name is not accurate, should be "set_free_fn"
+//  - use case is unclear - why do we need this method?
+//  - fuzzy overlap with existing semantics - reuses zero-copy free_fn but 
+//    is not actually zero-copy.
+//  (PH, 2013/05/18)
+
 void
 zframe_freefn (zframe_t *self, zframe_free_fn *free_fn, void *arg)
 {
@@ -386,26 +416,22 @@ zframe_freefn (zframe_t *self, zframe_free_fn *free_fn, void *arg)
     self->free_arg = arg;
 }
 
+
 //  --------------------------------------------------------------------------
 //  Selftest
 
 static void
 s_test_free_cb (void *data, void *arg)
 {
-    char cmp_buf [1024];
-
-    int i;
-    for (i = 0; i < 1024; i++)
-        cmp_buf [i] = 'A';
-
-    assert (memcmp (data, cmp_buf, 1024) == 0);
+    assert (((byte *) data) [0] == 'A');
+    assert (((byte *) data) [1023] == 'A');
     free (data);
 }
 
 static void
-s_test_free_frame_cb(void *frame, void *arg)
+s_test_free_frame_cb (void *data, void *arg)
 {
-    assert (frame);
+    assert (data);
 }
 
 int
@@ -413,11 +439,12 @@ zframe_test (bool verbose)
 {
     printf (" * zframe: ");
     int rc;
+    zframe_t* frame;
 
     //  @selftest
     zctx_t *ctx = zctx_new ();
     assert (ctx);
-
+    
     void *output = zsocket_new (ctx, ZMQ_PAIR);
     assert (output);
     zsocket_bind (output, "inproc://zframe.test");
@@ -428,12 +455,12 @@ zframe_test (bool verbose)
     //  Send five different frames, test ZFRAME_MORE
     int frame_nbr;
     for (frame_nbr = 0; frame_nbr < 5; frame_nbr++) {
-        zframe_t *frame = zframe_new ("Hello", 5);
+        frame = zframe_new ("Hello", 5);
         rc = zframe_send (&frame, output, ZFRAME_MORE);
         assert (rc == 0);
     }
     //  Send same frame five times, test ZFRAME_REUSE
-    zframe_t *frame = zframe_new ("Hello", 5);
+    frame = zframe_new ("Hello", 5);
     assert (frame);
     for (frame_nbr = 0; frame_nbr < 5; frame_nbr++) {
         rc = zframe_send (&frame, output, ZFRAME_MORE + ZFRAME_REUSE);
@@ -447,6 +474,12 @@ zframe_test (bool verbose)
     assert (zframe_size (copy) == 5);
     zframe_destroy (&copy);
     assert (!zframe_eq (frame, copy));
+	
+    //  Test zframe_new_empty
+    frame = zframe_new_empty ();
+    assert (frame);
+    assert (zframe_size (frame) == 0);
+    zframe_destroy (&frame);
 
     //  Send END frame
     frame = zframe_new ("NOT", 3);
@@ -476,11 +509,9 @@ zframe_test (bool verbose)
     frame = zframe_recv_nowait (input);
     assert (frame == NULL);
 
-    // Test zero copy
+    //  Test zero copy
     char *buffer = (char *) malloc (1024);
-    int i;
-    for (i = 0; i < 1024; i++)
-        buffer [i] = 'A';
+    memset (buffer, 'A', 1024);
 
     frame = zframe_new_zero_copy (buffer, 1024, s_test_free_cb, NULL);
     zframe_t *frame_copy = zframe_dup (frame);
