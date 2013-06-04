@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Alessandro Ghedini <al3xbio@gmail.com>
 Uploaders: Gergely Nagy <algernon@madhouse-project.org>
 Build-Depends: debhelper (>= 8), autotools-dev,
- libpgm-dev, libzmq-dev (>= 1.2.2), uuid-dev
+ libpgm-dev, libzmq-dev (>= 2.2.0), uuid-dev
 Standards-Version: 3.9.2
 Section: libs
 Homepage: http://czmq.zeromq.org/
