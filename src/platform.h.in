@@ -63,9 +63,6 @@
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
-/* Define to 1 if you have the `sodium' library (-lsodium). */
-#undef HAVE_LIBSODIUM
-
 /* Define to 1 if you have the `zmq' library (-lzmq). */
 #undef HAVE_LIBZMQ
 

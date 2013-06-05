@@ -80,9 +80,10 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libczmq_la_LIBADD =
-am_libczmq_la_OBJECTS = zbeacon.lo zclock.lo zctx.lo zfile.lo \
-	zframe.lo zhash.lo zlist.lo zloop.lo zmsg.lo zmutex.lo \
-	zsocket.lo zsockopt.lo zstr.lo zsys.lo zthread.lo
+am_libczmq_la_OBJECTS = zbeacon.lo zclock.lo zconfig.lo zctx.lo \
+	zfile.lo zframe.lo zhash.lo zlist.lo zloop.lo zmsg.lo \
+	zmutex.lo zsocket.lo zsockopt.lo zstr.lo zsys.lo zthread.lo \
+	ztree.lo
 libczmq_la_OBJECTS = $(am_libczmq_la_OBJECTS)
 libczmq_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -123,7 +124,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
+CFLAGS = -g
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -237,6 +238,7 @@ include_HEADERS = \
     ../include/czmq_prelude.h \
     ../include/zbeacon.h \
     ../include/zclock.h \
+    ../include/zconfig.h \
     ../include/zctx.h \
     ../include/zfile.h \
     ../include/zframe.h \
@@ -254,6 +256,7 @@ include_HEADERS = \
 libczmq_la_SOURCES = \
     zbeacon.c \
     zclock.c \
+    zconfig.c \
     zctx.c \
     zfile.c \
     zframe.c \
@@ -266,7 +269,8 @@ libczmq_la_SOURCES = \
     zsockopt.c \
     zstr.c \
     zsys.c \
-    zthread.c
+    zthread.c \
+    ztree.c
 
 INCLUDES = -I$(top_srcdir)/include
 czmq_selftest_LDADD = libczmq.la
@@ -416,6 +420,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/czmq_selftest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zbeacon.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zclock.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zconfig.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zctx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zframe.Plo@am__quote@
@@ -429,6 +434,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zstr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zsys.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zthread.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ztree.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
