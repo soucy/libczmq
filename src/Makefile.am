@@ -21,6 +21,7 @@ include_HEADERS = \
     ../include/zsockopt.h \
     ../include/zstr.h \
     ../include/zsys.h \
+    ../include/ztree.h \
     ../include/zthread.h
 
 libczmq_la_SOURCES = \
