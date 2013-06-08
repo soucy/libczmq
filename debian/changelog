@@ -1,3 +1,14 @@
+czmq (1:1.4.2-vyatta-6) unstable; urgency=low
+
+  * Fix sparse warning
+  * Make local test functions static
+  * ztree: add missing autofree to ztree_dup()
+  * ztree: fix comments around ztree_save/load
+  * ztree: add some tests for ztree_update
+  * ztree: switch to alternative source
+
+ -- Stephen Hemminger <stephen@networkplumber.org>  Sat, 08 Jun 2013 13:57:39 -0700
+
 czmq (1:1.4.2-vyatta-5) unstable; urgency=low
 
   * force build
