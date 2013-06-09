@@ -124,7 +124,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = -g
+CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -251,6 +251,7 @@ include_HEADERS = \
     ../include/zsockopt.h \
     ../include/zstr.h \
     ../include/zsys.h \
+    ../include/ztree.h \
     ../include/zthread.h
 
 libczmq_la_SOURCES = \
@@ -272,6 +273,7 @@ libczmq_la_SOURCES = \
     zthread.c \
     ztree.c
 
+AM_CFLAGS = -g
 INCLUDES = -I$(top_srcdir)/include
 czmq_selftest_LDADD = libczmq.la
 czmq_selftest_SOURCES = czmq_selftest.c
